@@ -347,15 +347,34 @@ sum(is.na(select(flights, dep_time))) # 8255
 
 #### .7.1
 1. How do these functions change when combined with grouping, for mutate/transmute and filter?
+I was confused about this question so I had to look at the solutions for a hint. Now I see this was kind of a leading question.
 ```{r}
+# Arithmetic operators don't work for group_by
+# These two are the same and I thought I was doing it wrong, but I wasn't.
 flights %>% select(dep_time, sched_dep_time, carrier) %>% group_by(carrier) %>% mutate(calc_dep_delay=sched_dep_time - dep_time) 
-flights %>% select(air_time) %>% mutate(air_time_hour_remainder=air_time %% 60)
-flights %>% select(distance) %>% mutate(log_distance=log10(distance))
+flights %>% select(dep_time, sched_dep_time, carrier) %>% mutate(calc_dep_delay=sched_dep_time - dep_time) 
 
+# Modular arithmetic also doesn't work for group_by.
+flights %>% select(flight, carrier) %>% mutate(flight_is_odd=flight %% 2)
+flights %>% select(flight, carrier) %>% group_by(carrier) %>% mutate(flight_is_odd=flight %% 2)
+
+# And logarithms don't work grouped either.
+flights %>% select(distance, carrier) %>% mutate(log_distance=log10(distance))
+flights %>% select(distance, carrier) %>% group_by(carrier) %>% mutate(log_distance=log10(distance))
+
+# Offsets
+flights %>% select() %>% mutate(lag())
+
+# Cumulative aggregates
+
+# Logical comparisons have to be 
+
+
+# Rankings
 
 ```
 
-- arithmetic operators: use with mutate to modify a variable, group-wise
+- arithmetic operators: not affected by group_by
 - modular arithmetic: use with mutate to modify a variable, group-wise
 - logarithms: would get the log of each group
 - offsets (lead/lag): would allow comparisons between consecutive or relative groups
