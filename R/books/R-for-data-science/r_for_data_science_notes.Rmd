@@ -1,0 +1,364 @@
+# R for Data Science reading
+https://r4ds.had.co.nz
+[Solutions](https://jrnold.github.io/r4ds-exercise-solutions/)
+
+## Introduction 2019-06-24
+- Workflow: import - tidy - transform - visualize - model - communicate
+- Examples in the book will use MBs of data
+- Recommends learning data.table for GBs of data
+
+```{r}
+install.packages('tidyverse')
+library(tidyverse)
+tidyverse_update()
+install.packages(c("nycflights13", "gapminder", "Lahman"))
+```
+
+## Data visualization 2019-06-24
+- I'm just skimming this chapter to see what they think is important to say about ggplot
+- Graphs that plot the raw data (scatter, etc.) vs. graphs that plot summarized/transformed data (bar, histogram, frequency polygon, smoothed, boxplot, etc.)
+	- "stat" = algorithm used to compute values for the transformed graph
+	- every geom has a default "stat" argument
+	- you could use a stat in place of its default geom, e.g. `geom_bar` is equivalent to `stat_count`
+	- Reasons to use a stat instead of a geom:
+		1. Override the default stat
+		2. Override the default variable-aesthetic mapping
+		3. Make an explicit mention of the stat that is being used, for code clarity
+
+```{r}
+library(tidyverse)
+ggplot(data=mpg)  # prints an empty plotting background
+ggplot(data=mpg) + geom_point(aes(x=hwy, y=cyl))
+table(mpg$drv)
+table(mpg$class)
+ggplot(data=mpg) + geom_point(aes(x=class, y=drv))
+ggplot(data=mpg) + geom_point(aes(x=displ, y=hwy, color=class))
+
+# Use the stat-computed variable "proportion" to plot a bar chart
+ggplot(data=diamonds) + geom_bar(aes(x=cut, y=..prop.., group=1))
+# Compare to the default where y = ..count..
+ggplot(data=diamonds) +	geom_bar(aes(x=cut, group=1))
+# This is the same as above, without the y argument
+ggplot(data=diamonds) +	geom_bar(aes(x=cut, y=..count.., group=1))
+```
+
+### .7 Statistical transformations
+1. `stat_summary` has the default geom `pointrange`; it's listed in the default value for the geom argument in the documentation
+2. `geom_col` uses the stat identity, while `geom_bar` uses the "count" stat by default; there used to be an older way to do this, using stat_identity, but this is much easier!
+3. I've got some code below to print out the default stat for each geom, to answer this question. I'm not really sure what they're getting at by "What do [the geom-stat pairs] have in common?" There are a few kinds of stats, e.g. identity, binning, summarizing and the summary stats tend to have names that match their default geoms, I guess.
+
+```{r}
+# Get the list of all geoms from ggplot
+all_geoms <- ls('package:ggplot2')[str_which(ls('package:ggplot2'), 'geom')]
+# Get the default value of the stat argument for each one
+sapply(all_geoms, function(x){formals(x)$stat})
+# $geom_abline
+# NULL
+# 
+# $geom_area
+# [1] "identity"
+# 
+# $geom_bar
+# [1] "count"
+# 
+# $geom_bin2d
+# [1] "bin2d"
+# 
+# $geom_blank
+# [1] "identity"
+# 
+# $geom_boxplot
+# [1] "boxplot"
+# 
+# $geom_col
+# NULL
+# 
+# $geom_contour
+# [1] "contour"
+# 
+# $geom_count
+# [1] "sum"
+# 
+# $geom_crossbar
+# [1] "identity"
+# 
+# $geom_curve
+# [1] "identity"
+# 
+# $geom_density
+# [1] "density"
+# 
+# $geom_density_2d
+# [1] "density2d"
+# 
+# $geom_density2d
+# [1] "density2d"
+# 
+# $geom_dotplot
+# NULL
+# 
+# $geom_errorbar
+# [1] "identity"
+# 
+# $geom_errorbarh
+# [1] "identity"
+# 
+# $geom_freqpoly
+# [1] "bin"
+# 
+# $geom_hex
+# [1] "binhex"
+# 
+# $geom_histogram
+# [1] "bin"
+# 
+# $geom_hline
+# NULL
+# 
+# $geom_jitter
+# [1] "identity"
+# 
+# $geom_label
+# [1] "identity"
+# 
+# $geom_line
+# [1] "identity"
+# 
+# $geom_linerange
+# [1] "identity"
+# 
+# $geom_map
+# [1] "identity"
+# 
+# $geom_path
+# [1] "identity"
+# 
+# $geom_point
+# [1] "identity"
+# 
+# $geom_pointrange
+# [1] "identity"
+# 
+# $geom_polygon
+# [1] "identity"
+# 
+# $geom_qq
+# NULL
+# 
+# $geom_qq_line
+# NULL
+# 
+# $geom_quantile
+# [1] "quantile"
+# 
+# $geom_raster
+# [1] "identity"
+# 
+# $geom_rect
+# [1] "identity"
+# 
+# $geom_ribbon
+# [1] "identity"
+# 
+# $geom_rug
+# [1] "identity"
+# 
+# $geom_segment
+# [1] "identity"
+# 
+# $geom_sf
+# [1] "sf"
+# 
+# $geom_sf_label
+# [1] "sf_coordinates"
+# 
+# $geom_sf_text
+# [1] "sf_coordinates"
+# 
+# $geom_smooth
+# [1] "smooth"
+# 
+# $geom_spoke
+# [1] "identity"
+# 
+# $geom_step
+# [1] "identity"
+# 
+# $geom_text
+# [1] "identity"
+# 
+# $geom_tile
+# [1] "identity"
+# 
+# $geom_violin
+# [1] "ydensity"
+# 
+# $geom_vline
+# NULL
+# 
+# $guide_geom
+# NULL
+# 
+# $update_geom_defaults
+# NULL
+```
+4. `stat_smooth` computes a predicted y value, mins and maxes around those predicted y values (confidence interval), and standard error.
+5. I'm not really sure why you need the "group" aesthetic here, which is what this question is asking about. I know you can use group with `geom_line` to get multiple lines instead of one combined line, but I'm not sure how that applies to the bar plot. And the documentation is not exactly clear on what group does.
+```{r}
+ggplot(data=diamonds) + geom_bar(aes(x=cut, y=..prop.., group=1))
+ggplot(data=diamonds) + geom_bar(aes(x=cut, y=..prop..))
+ggplot(data=diamonds) + geom_bar(aes(x=cut, y=..prop.., fill=cut))
+str(diamonds)
+```
+
+### .8 Positions adjustments
+- Position adjustment has four settings: 'identity', 'dodge', 'fill', and 'stack'
+	- identity places the object exactly where it falls
+	- fill makes bars stacked, but also the same height
+	- dodge places objects beside one another
+	- stack stacks bars on top of one another
+	- jitter adds a small amount of random noise to position of the object, to prevent overplotting
+
+### .9 Coordinate systems
+- `coord_flip` switches x and y in cartesian coordinates
+- `coord_quickmap` sets the aspect ratio for maps
+- `coord_polar` uses polar (circular, radius and degrees/radians) coordinates
+
+1. 
+```{r}
+# This isn't quite right. This is just the example they already gave of the Coxcomb chart.
+ggplot(data=diamonds) + geom_bar(aes(x=clarity, fill=clarity), width=1) + coord_polar()
+# And this one looks like a pie chart, but isn't proportional - just equal pie slices.
+ggplot(data=diamonds) + geom_bar(aes(x=clarity, y=..prop.., fill=clarity), width=1) + coord_polar()
+# And this one just makes concentric circles, but with a slice missing for some reason
+ggplot(diamonds) + geom_bar(aes(x=factor(1), fill=clarity)) + coord_polar()
+# At least adding width=1 makes the missing slice go away, but I'm not sure why
+ggplot(diamonds) + geom_bar(aes(x=factor(1), fill=clarity), width=1) + coord_polar()
+
+# Okay, I finally just went to the solutions page here: 
+# https://jrnold.github.io/r4ds-exercise-solutions/data-visualisation.html#coordinate-systems
+# I've never heard of this theta argument before...
+ggplot(diamonds) + geom_bar(aes(x=factor(1), fill=clarity)) + coord_polar(theta='y')
+```
+2. `labs()`, which might be a new function since I wasn't aware of it, allows you to set the label for any variable in your dataset. If it's used in multiple places, setting the label this way will change it in multiple places, I think. It also allows you to add title, subtitle, tag, and caption for the figure. Neat!
+3. `coord_quickmap` is a quicker version of making a map projection. It preserves straight lines and is better for smaller areas near the equator.  `coord_map`does a ful map projection computation.
+4. City and Highway mpg are positively correlated with one another, but highway mpg goes up slightly faster. `coord_fixed` preserves the relationship between the scale on the x and y axes, since the measurements are in the same units and the same order of magnitude. It appears that the old option that I was familiar with, `coord_equal`, has been replaced by `coord_fixed`, and you can now provide other aspect ratios than 1:1, but the default is the same as `coord_equal`. `geom_abline` adds a reference line with intercept 0 and slope 1, due to default settings. Behind the scenes this geom creates a dataframe with the data to plot, and it doesn't affect scales.
+
+### .10 Layered grammar of graphics 2019-06-25
+- Grammar terms include: data, geom function, aesthetic mapping, stat, position, coord function, and facet function
+- Putting these terms together in different ways can produce **any** kind of plot you could want
+
+## Workflow: basics
+
+- Object names must start with a letter, contain only letters, numbers, underscore, and dot
+- Recommendation of snake case for naming
+- RStudio tab-completion has autocomplete functions
+
+### Practice
+1. There's a typo when printing `my_variable`. Something's wrong with the 'i'.
+2. 
+```{r}
+library(tidyverse)
+ggplot(data=mpg) + geom_point(mapping=aes(x=displ, y=hwy))
+filter(mpg, cyl==8)
+filter(diamonds, carat>3)
+```
+
+# Data transformation
+
+- Five main `dplyr` functions:
+    - filter: pick observations by value
+    - arrange: reorder rows
+    - select: pick variables by their names
+    - mutate: create new variables as a function of existing variables
+    - summarize: collapse many values down to a single summary value
+    - Can combine these with group_by if you'd like
+- `dplyr` functions DO NOT modify the data frame in place ... you have to rewrite it if you only want the new one
+- To account for precision issues with floats, use `near()` instead of `==`
+- Use `&` and `|` for `dplyr`, not `&&` or `||`
+- `filter()` doesn't include NA values by default - you have to explicitly include them
+- Missing values are sorted to the end
+- Some really nifty helper functions for select: `starts_with`, `ends_with`, `contains`,  `matches`, `num_range`
+- It's okay to summarize a summary for sums and counts, but be careful with other summary stats - means, variances, medians, etc.
+    > the sum of groupwise sums is the overall sum, but the median of groupwise medians is not the overall median
+- 
+```{r}
+library(nycflights13)
+library(tidyverse)
+
+# Even though I learned about this nifty function from Hadley's Advanced R book, I see now that it's just
+# from utils in base R, so now I know why Hadley doesn't use it any more - not from his own packages.
+str(flights)
+?flights
+
+View(flights) # Open in RStudio viewer
+
+filter(flights, month==1, day==1)
+filter(flights, dep_time>1305)
+filter(flights, arr_time<2100, dep_delay<30)
+
+# These two are equivalent
+best_flights <- filter(flights, arr_time<2100, dep_delay<30)
+best_flights <- flights %>%
+    filter(arr_time<2100, dep_delay<30)
+
+# I'm not seeing the same floating point precision issue here
+sqrt(4) ^ 2 == 4
+near(sqrt(4)^2, 4)
+
+filter(flights, month %in% c(4, 8))
+
+# NA's are weird
+x <- NA
+y <- NA
+x == y # It's unknown whether these two unknown quantities are equal to one another!
+
+arrange(flights, year, month, day)
+arrange(flights, desc(air_time))
+
+select(flights, year, year)
+select(flights, contains("TIME"))
+?contains
+```
+
+### Exercises
+
+#### .2.4
+```{r}
+## 1.
+filter(flights, arr_delay>=120)
+filter(flights, dest %in% c('IAH', 'HOU'))
+filter(flights, carrier %in% c('AA', 'UA', 'DL'))
+filter(flights, month %in% c(7, 8, 9))
+filter(flights, arr_delay>120, dep_delay <- 1)
+filter(flights, dep_time <= 600 | dep_time == 2400)
+## 2.
+filter(flights, between(month, 7, 9))
+## 3.
+sum(is.na(select(flights, dep_time))) # 8255
+```
+4. NA to the zeroth power is not missing because all real numbers to the zeroth power equal one. So the answer is 1 regardless of the value of the variable. `NA | TRUE` is not missing because TRUE will always be true, so the statement always evaluates to TRUE, regardless of the NA value. 
+
+#### .6.7
+```{r}
+# 1.
+
+```
+
+#### .7.1
+1. How do these functions change when combined with grouping, for mutate/transmute and filter?
+```{r}
+flights %>% select(dep_time, sched_dep_time, carrier) %>% group_by(carrier) %>% mutate(calc_dep_delay=sched_dep_time - dep_time) 
+flights %>% select(air_time) %>% mutate(air_time_hour_remainder=air_time %% 60)
+flights %>% select(distance) %>% mutate(log_distance=log10(distance))
+
+
+```
+
+- arithmetic operators: use with mutate to modify a variable, group-wise
+- modular arithmetic: use with mutate to modify a variable, group-wise
+- logarithms: would get the log of each group
+- offsets (lead/lag): would allow comparisons between consecutive or relative groups
+- cumulative aggregates: would get cumulative sum or product within group
+- logical comparisons: would get 
+- ranking

@@ -1,0 +1,45 @@
+Starting from this tutorial at DataCamp:
+https://www.datacamp.com/community/tutorials/tidyverse-tutorial-r
+
+```{r}
+install.packages('tidyverse')
+library(tidyverse)
+
+passengers <- read.csv('/Users/emeryl/Documents/practice_code/data/train.csv')
+str(passengers)
+
+passengers %>% summary()
+passengers %>% str()
+passengers %>% drop_na() %>% summary()
+
+passengers %>% str()
+passengers %>% filter(Sex == 'male') %>% str()
+passengers %>% arrange(Fare) %>% str()
+passengers %>% arrange(desc(Fare)) %>% str()
+passengers %>% mutate(FamSize = Parch + SibSp) %>% str()
+# Mutate does not add the column to the data frame in place.
+passengers %>% str()
+passengers %>% mutate(FamSize = Parch + SibSp) %>% arrange(desc(FamSize)) %>% str()
+passengers %>% mutate(FamSize = Parch + SibSp) %>% arrange(FamSize) %>% str()
+
+passengers1 <- passengers %>%
+    mutate(Survived = ifelse(Survived == 0, 'no', 'yes'), FamSize = Parch + SibSp)
+passengers1 %>% str()
+
+ggplot(passengers1, aes(x=Sex)) + geom_bar()
+ggplot(passengers1, aes(x=Sex)) + geom_bar() + facet_grid(. ~ Survived)
+ggplot(passengers1, aes(x=Age, y=Fare)) + geom_point(aes(color=Sex)) + facet_grid( ~ Survived)
+ggplot(passengers1, aes(x=Sex, fill=Survived)) + geom_bar()
+
+passengers %>% summarize(meanFare=mean(Fare), medianFare=median(Fare))
+passengers %>% 
+    filter(Sex=='male') %>% 
+    summarize(meanFare=mean(Fare), medianFare=median(Fare), numSurv=sum(Survived))
+passengers %>% 
+    group_by(Sex) %>% 
+    summarize(meanFare=mean(Fare), medianFare=median(Fare), num=n(), propSurv=sum(Survived)/n(), nSurv=sum(Survived))
+```
+
+And then this bit about the pipe operator:
+https://www.datacamp.com/community/tutorials/pipe-r-tutorial
+
