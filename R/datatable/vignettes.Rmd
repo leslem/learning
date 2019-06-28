@@ -29,7 +29,7 @@ flights <- fread(input) # Will also read a file from the internet - that's neat!
 str(flights)
 ```
 
-## 1.1. Basics
+## 1 Basics
 ```{r}
 # Create a data.table from scratch
 DT <- data.table(
@@ -89,15 +89,68 @@ flights[ , year:day]
 flights[ , -(year:day)]
 ```
 
-# 2. Aggregations
+## 2 Aggregations
 *2019-06-28*
 - The `by` argument to a data.table provides grouping (aggregation) functions
 - The original order of the groups in the unaggregated data.table is preserved in the grouping process
+- `keyby` is usually faster than `by` because the sorting needs to be done under the hood anyway in order to carry out the grouping
+    - Note that `keyby` also sets a key at the same time
 ```{r}
 flights[ , .(.N), by=.(origin)] # Total number of flights originating in each airport
 flights[ , .(.N), by='origin'] # Works with a character vector too
 flights[ , .(number_of_flights=.N), by=.(origin)] # Provide a column name for the new aggregated variable
 flights[ , .N, by=origin] # The .() notation isn't needed when there's just one variable in j or by
-
+flights[carrier == 'AA', .N, by=origin] # You can do subsetting with i at the same time
+flights[ , .N, by=.(origin, dest)] # You can group by multiple variables
+# And combine with as many j variables as you want
+flights[ , .(avg_arr_delay=mean(arr_delay), avg_dep_delay=mean(dep_delay)), by=.(origin, dest, month)]
+# Just change by to keyby and you'll get sorting on the by variables as well
+flights[ , .(avg_arr_delay=mean(arr_delay), avg_dep_delay=mean(dep_delay)), keyby=.(origin, dest, month)]
+# Chaining the expressions prevents having to write the data.table to a new variable
+flights[carrier == 'AA', .N, by=.(origin, dest)][order(origin, -dest), ]
+# You can also put expressions in by/keyby
+flights[ , .N, by=.(dep_delay>0, arr_delay>0)]
+# And you can include other variables at the same time as an expression
+flights[ , .N, by=.(dep_delay>0, arr_delay>0, origin)]
 ```
 
+- `.SD` is a special symbol, standing for "Subset of Data"
+    - `.SD` represents the data for the current group defined in by/keyby
+    - `.SD` contains all columns *except for the grouping columns*
+    - An additional argument, `.SDcols`, can be combined with `.SD` to do things on specified subsets of columns
+```{r}
+# What does .SD look like?
+DT
+DT[ , print(.SD), by=ID]
+# A list of the three groups of data, where ID=a, ID=b, and ID=c
+# If you use just .SD it would calculate on all possible columns
+DT[ , mean(.SD), by=ID] # Doesn't work because it's on the whole group
+DT[ , lapply(.SD, mean), by=ID] # Need to use lapply
+# So get the mean of just a couple of columns
+flights[carrier == 'AA', lapply(.SD, mean), by=.(origin, dest, month), .SDcols=c('arr_delay', 'dep_delay')]
+# And there are many ways to specify the columns you want
+str(flights)
+flights[carrier == 'AA', lapply(.SD, mean), by=.(origin, dest, month), .SDcols=!c('year', 'day', 'carrier')]
+flights[carrier == 'AA', lapply(.SD, mean), by=.(origin, dest, month), .SDcols=-c('year', 'day', 'carrier')]
+flights[carrier == 'AA', lapply(.SD, mean), by=.(origin, dest, month), .SDcols=air_time:hour]
+# Getting the first two rows for each group
+flights[ , head(.SD, 2), by=month]
+# Combine with a function and lapply in j to get mean of first two rows for arr_delay and dep_delay
+flights[ , lapply(head(.SD, 2), mean), by=month, .SDcols=c('arr_delay', 'dep_delay')]
+```
+
+- The syntax of data.tables is so flexible that it is very, very powerful and you can do almost anything you can imagine with a data.table using just i, j, and by
+```{r}
+# Combine two columns of a data.table into one
+DT[ , .(val=c(a, b)), by=ID] # But how would you get the a/b labels with this???
+# Make the result into a list instead
+DT[ , .(val=list(c(a,b))), by=ID]
+```
+
+## Key points
+- `data.table` syntax is `DT[i, j, by]
+- i can subset rows and use `order()` to sort the rows
+- j can select columns, compute on columns, and combine with i behaviors
+- by can perform aggregation by specified columns, and keyby can sort at the same time
+    - .SD and .SDcols can be used to compute on the aggregated columns
+- **As long as j returns a list, each element will be a column in the resulting data.table!**
