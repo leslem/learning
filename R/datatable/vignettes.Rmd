@@ -154,3 +154,7 @@ DT[ , .(val=list(c(a,b))), by=ID]
 - by can perform aggregation by specified columns, and keyby can sort at the same time
     - .SD and .SDcols can be used to compute on the aggregated columns
 - **As long as j returns a list, each element will be a column in the resulting data.table!**
+
+# Reference semantics
+https://cloud.r-project.org/web/packages/data.table/vignettes/datatable-reference-semantics.html
+
