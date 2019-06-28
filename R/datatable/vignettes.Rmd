@@ -1,0 +1,103 @@
+---
+title: "Data.table refresher and deep dive learning"
+author: "Leslie Emery"
+date: "6/27/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction to data.table
+https://cloud.r-project.org/web/packages/data.table/vignettes/datatable-intro.html
+
+*2019-06-27*
+```{r}
+install.packages('data.table')
+library(data.table)
+```
+
+```{r get-data}
+input <- if (file.exists("flights14.csv")) {
+   "flights14.csv"
+} else {
+  "https://raw.githubusercontent.com/Rdatatable/data.table/master/vignettes/flights14.csv"
+}
+# fread makes this a data.table from the start
+flights <- fread(input) # Will also read a file from the internet - that's neat!
+str(flights)
+```
+
+## 1.1. Basics
+```{r}
+# Create a data.table from scratch
+DT <- data.table(
+    ID=c('b', 'b', 'b', 'a', 'a', 'c'),
+    a=1:6, 
+    b=7:12,
+    c=13:18
+)
+str(DT)
+### data.tables have stringsAsFactors=False as the default!!! ###
+getOption('datatable.print.nrows')
+
+# Using indexes in the brackets of a DT is "querying" a data.table
+# Subset rows
+flights[1:2, ]
+flights[origin == 'JFK' & month == 6]
+dim(flights[origin == 'JFK' & month == 6])
+# Note that the column names can be used as if named variables, within the brackets
+
+# Reorder rows
+flights[order(origin, -dest), ]
+
+# Select columns
+flights[ , arr_delay] # Returns a vector
+flights[["arr_delay"]] # Returns a vector
+flights$arr_delay # Returns a vector
+flights[ , list(arr_delay)] # Returns a data.table
+flights[ , .(arr_delay)] # .() is just an alias for list()
+
+flights[ , .(arr_delay, dep_delay)]
+flights[ , .(arrival_delay=arr_delay, departure_delay=dep_delay)] # Use the j query list to rename the selected columns
+
+# You can compute in the j query
+flights[ , sum( (arr_delay + dep_delay) < 0)] # Number of flights without any delay
+# This is like dplyr's mutate, but it's just using the same syntax in the same place
+# You can also combine these computations in j with queries in i
+flights[origin == 'JFK' & month == 6, .(avg_arr_delay=mean(arr_delay), avg_dep_delay=mean(dep_delay))]
+# This is pretty fast because it subsets just the indexes of i, and the right columns in j, before doing the computation
+# The query is optimized before evaluation
+
+# You could use the computation in j to count the rows in your query
+flights[origin == 'JFK' & month == 6, .(length(dest))]
+# But there's also a special shortcut for this
+flights[origin == 'JFK' & month == 6, .N] # And there's no stupide V1 variable name
+
+# You can index by column name in a variable or vector as well
+flights[ , c('arr_delay', 'dep_delay')]
+# And unpack a vector with ..
+select_cols <- c('arr_delay', 'dep_delay')
+flights[ , ..select_cols]
+# Or use the with=FALSE argument
+flights[ , select_cols, with=FALSE]
+# You can exclude columns in this way
+flights[ , -c('arr_delay', 'dep_delay')]
+# And select or exclude a range of columns by variable name
+flights[ , year:day]
+flights[ , -(year:day)]
+```
+
+# 2. Aggregations
+*2019-06-28*
+- The `by` argument to a data.table provides grouping (aggregation) functions
+- The original order of the groups in the unaggregated data.table is preserved in the grouping process
+```{r}
+flights[ , .(.N), by=.(origin)] # Total number of flights originating in each airport
+flights[ , .(.N), by='origin'] # Works with a character vector too
+flights[ , .(number_of_flights=.N), by=.(origin)] # Provide a column name for the new aggregated variable
+flights[ , .N, by=origin] # The .() notation isn't needed when there's just one variable in j or by
+
+```
+
