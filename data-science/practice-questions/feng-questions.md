@@ -3,6 +3,41 @@
 
 ## Coding
 * Fizzbuzz
+    * http://wiki.c2.com/?FizzBuzzTest
+    * Write a program that prints the numbers from 1 to 100. But for multiples of three print “Fizz” instead of the number and for the multiples of five print “Buzz”. For numbers which are multiples of both three and five print “FizzBuzz”.
+
+```{r}
+# Multiples of 3: replace with "fizz"
+# Multiples of 5: replace with "buzz"
+# Multiples of both: replace with "fizzbuzz"
+for (x in seq(100)) {
+    out <- ""
+    if (x %% 3 == 0) {
+        out <- paste0(out, "Fizz")
+    }
+    if (x %% 5 == 0) {
+        out <- paste0(out, "Buzz")
+    }
+    if (out == "") {
+        out <- x
+    }
+    # print(paste(x, ":", out))
+    print(out)
+}
+```
+
+```{python}
+for x in range(1, 100):
+    out = ''
+    if x % 3 == 0:
+        out += 'Fizz'
+    if x % 5 == 0:
+        out += 'Buzz'
+    if out == '':
+        out = str(x)
+    print(out)
+```
+
 * Given a list of timestamps in sequential order, return a list of lists grouped by weekly aggregation.
 * Given a list of characters, a list of prior of probabilities for each character, and a matrix of probabilities for each character combination, return the optimal sequence for the highest probability.
 * Given a log file with rows featuring a date, a number, and then a string of names, parse the log file and return the count of unique names aggregated by month.
