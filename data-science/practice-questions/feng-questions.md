@@ -39,6 +39,28 @@ for x in range(1, 100):
 ```
 
 * Given a list of timestamps in sequential order, return a list of lists grouped by weekly aggregation.
+
+```{r}
+library(lubridate)
+library(tidyverse)
+library(data.table)
+
+timestamps <- sample(seq(as.POSIXct('2018-01-01'), as.POSIXct('2018-12-31'), 1), 100)
+timestamps <- sort(timestamps)
+week_nums <- week(timestamps)
+df <- data.frame(timestamp=timestamps, week_num=week_nums)
+df %>% nest(timestamp)
+
+# But it's probably easier just to use data.table to aggregate things by week!
+dt <- data.table(df)
+dt
+dt[ , .(.N), by=week_num]
+```
+
+```{python}
+
+```
+
 * Given a list of characters, a list of prior of probabilities for each character, and a matrix of probabilities for each character combination, return the optimal sequence for the highest probability.
 * Given a log file with rows featuring a date, a number, and then a string of names, parse the log file and return the count of unique names aggregated by month.
 ## Product
