@@ -156,5 +156,87 @@ DT[ , .(val=list(c(a,b))), by=ID]
 - **As long as j returns a list, each element will be a column in the resulting data.table!**
 
 # Reference semantics
+*2019-07-10*
 https://cloud.r-project.org/web/packages/data.table/vignettes/datatable-reference-semantics.html
 
+- What will be covered here:
+  - What are "reference semantics" - i.e. doing things "by reference"
+  - How to add/update/delete columns **by reference**
+- Note that previous sections all produced a *new dataset* rather than changing the existing one in-place
+  - A "shallow copy" just copies the **pointers** to the columns
+  - A "deep copy" copies the entire data to another location in memory
+  - `:=` updates columns in a data table **in-place** (by reference)
+- You can use the `:=` operator in two ways:
+  1. `LHS := RHS` form: `DT[ , c('colA', 'colB', ...) := list(valA, valB, ...)]`
+    - LHS = character vector of column names; RHS = a list of values
+    - RHS could be generated from lapply, list, mget, mapply, etc.
+  2. Functional form: ``DT[ , `:=`(colA=valA, colB=valB, ...)]``
+- You can also combine use of `:=` operator in j with i and by for aggregation operations
+- To delete a column, assign `NULL` to it
+- Using `:=` with aggregation (by)
+  - For each group, a single value is provided and it will be the same value for each group
+- Sometimes you may not **want** to modify the data table in place; in this case you can force a deep copy with `copy()`
+  - e.g. If you're writing a function to return the new column
+  
+```{r}
+DF <- data.frame(ID = c("b","b","b","a","a","c"), a = 1:6, b = 7:12, c = 13:18)
+DF$c <- 18:13  # Used to make a deep copy, until improvements in R 3.1 (due to data.table work)
+DF$c[DF$ID == "b"] <- 15:13  # Makes a deep copy
+
+# Add columns by reference
+flights[ , `:=`(speed = distance / (air_time / 60), # speed in mph (mi/h)
+                delay = arr_delay + dep_delay) # delay in minutes
+]
+head(flights) # Has the two new columns!
+# Or this is the same thing in LHS := RHS form:
+flights[ , c('speed', 'delay') := list(distance / (air_time / 60), arr_delay + dep_delay)]
+
+# Update **some** rows of the column by reference (subassign)
+flights[ , sort(unique(hour))] # Note that hour 0 and hour 24 are both included, but these are really the same time
+flights[hour == 24L, hour := 0L] # Replace 24's with 0's for consistency
+flights[ , sort(unique(hour))] # 24 is gone
+
+# Do the same thing as above, but print the results at the end
+flights[hour == 24L, hour := 0L][]
+
+# Delete a column by reference
+flights[ , c('delay') := NULL] # Deletes the "delay" column that you had just added
+head(flights)
+flights[ , speed := NULL ] # If it's just one column, you can use it without quotes and without the c()
+
+# Add speed and delay again
+flights[ , c('speed', 'delay') := list(distance / (air_time / 60), arr_delay + dep_delay)]
+
+# Use := along with grouping by
+flights[ , max_speed := max(speed), by=.(origin, dest)] # Maximum speed by origin and destination
+# Note that the new column will have the same value for every row in the same (origin, dest) group
+
+# Using := to create multiple aggregated columns
+in_cols <- c('dep_delay', 'arr_delay')
+out_cols <- c('max_dep_delay', 'max_arr_delay')
+# Use lapply max to .SD (the data from each group) and only use it on specific columns from .SDcols
+flights[ , c(out_cols) := lapply(.SD, max), by=month, .SDcols=in_cols]
+flights
+
+# Get rid of all the columns you just created
+flights[ , c('speed', 'delay', 'max_speed', 'max_dep_delay', 'max_arr_delay') := NULL]
+flights
+
+# Use copy() so that you can use := in a function without modifying the DT in place
+foo <- function(DT)
+{
+  DT <- copy(DT)
+  DT[ , speed := distance / (air_time / 60)]
+  return(DT[ , .(max_speed = max(speed)), by=month])
+}
+res <- foo(flights)
+flights # Still has no speed column
+```
+
+Remember that:
+- .SD lets you do some function by each group
+- .SDcols lets you do the .SD function to only specific columns
+
+# Keys and fast binary search based subset
+*2019-*
+https://cloud.r-project.org/web/packages/data.table/vignettes/datatable-keys-fast-subset.html
