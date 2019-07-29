@@ -26,6 +26,14 @@ for (x in seq(100)) {
 }
 ```
 
+I think this is a more idiomatic way to write this in R
+```{r}
+df <- data.frame(x=seq(100))
+df$div3 <- df$x %% 3 == 0
+df$div5 <- df$x %% 5 == 0
+df$out <- ifelse(df$div3 & df$div5, 'FizzBuzz', ifelse(df$div3, 'Fizz', ifelse(df$div5, 'Buzz', '')))
+```
+
 ```{python}
 for x in range(1, 100):
     out = ''
@@ -49,19 +57,58 @@ timestamps <- sample(seq(as.POSIXct('2018-01-01'), as.POSIXct('2018-12-31'), 1),
 timestamps <- sort(timestamps)
 week_nums <- week(timestamps)
 df <- data.frame(timestamp=timestamps, week_num=week_nums)
+# You can use this dplyr function to make the list of lists by week_num.
+# But I really think it's easiest to keep it as a dataframe with week_num labels.
 df %>% nest(timestamp)
 
-# But it's probably easier just to use data.table to aggregate things by week!
+# For example, it's easier just to use data.table to aggregate things by week!
 dt <- data.table(df)
 dt
 dt[ , .(.N), by=week_num]
 ```
 
 ```{python}
+from datetime import datetime, timedelta
+import random
+from collections import defaultdict
 
+start = datetime(2018, 1, 1, 00, 00, 00)
+end = datetime(2018, 12, 31, 00, 00, 00)
+year_delta = end - start
+# You can't multiply a datetime by a fraction (from random.random)
+# but you can multiply a timedelta by a fraction, so just add a random fraction
+# of the timedelta for one year to the starting datetime.
+# Source: https://gist.github.com/rg3915/db907d7455a4949dbe69
+timestamps = [start + (year_delta * random.random()) for x in range(100)]
+week_timestamps = [(x.isocalendar()[1], x) for x in timestamps]
+
+# Use the defaultdict from collections to make a dict with list as the default factory
+# This appends all of the values with the same week number together into a list
+timestamps_by_week = defaultdict(list)
+for k, v in week_timestamps:
+    timestamps_by_week[k].append(v)
+
+# If you really want the timestamps collected together into lists by week,
+# then I think this is a better data structure than a plain list of lists.
+# But just as in the R example, it may be better to just leave them as
+# columns in a data frame (e.g. pandas) and aggregate on the week column.
 ```
 
 * Given a list of characters, a list of prior of probabilities for each character, and a matrix of probabilities for each character combination, return the optimal sequence for the highest probability.
+
+```{r}
+# Set up a simple example dataset.
+chars <- c('a', 'b', 'c')
+probs <- runif(length(chars))
+probs <- probs / sum(probs)
+combo_probs <- matrix(runif(length(chars) ** 2), nrow=3)
+combo_probs <- combo_probs / sum(combo_probs)
+rownames(combo_probs) <- chars
+colnames(combo_probs) <- chars
+
+```
+
+
 * Given a log file with rows featuring a date, a number, and then a string of names, parse the log file and return the count of unique names aggregated by month.
 ## Product
 * Given there are no metrics being tracked for Google Docs, a product manager comes to you and asks what are the top five metrics you would implement?
