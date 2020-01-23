@@ -5,4 +5,4 @@
 
 # Create a virtualenv with the desired packages
 # and set the project directory for `workon`.
-mkvirtualenv -r requirements.txt -a . pandas-learning
+mkvirtualenv -r ~/devel/learning/python/tutorials/requirements.txt -a ~/devel/learning/python/tutorials/ py-tutorials
