@@ -1,5 +1,10 @@
-pandas
-requests
-scipy
-numpy
+jupyter
+jupytext
+matplotlib
 nltk
+numpy
+pandas
+plotly
+requests
+scikit-learn
+scipy
