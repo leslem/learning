@@ -1,0 +1,346 @@
+---
+title: "Statistical distributions explored in R"
+author: "Leslie Emery"
+date: "7/14/2020"
+output:
+    html_document:
+        fig_width: 7
+        fig_height: 7
+        toc: true
+        toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries}
+library(ggplot2)
+```
+
+
+## Student's t-distribution
+
+The Student's t distribution is used for estimating the mean of a normally distrubuted populatino when the sample size is small and the populations standard deviation is unknown. The important parameters are the sample size and the degrees of freedom (equal to sample size - 1).
+
+Set up values I'm going to use for x and the degrees of freedom for looking at the t distribution.
+```{r t-setup}
+x_vals <- seq(-4, 4, length=100)  # x points at which to include prob density values
+degrees_of_freedom <- c(seq(5), 10 ** seq(3))
+t_colors <- rainbow(n=length(degrees_of_freedom))
+```
+
+Plot the t distribution for each of the specified values for degrees of freedom.
+```{r t-density-plot}
+plot(x_vals, dt(x_vals, degrees_of_freedom[1]), type='l', lwd=2, col=t_colors[1],
+	 xlab='x', ylab='Density', main='Density of t distributions', ylim=c(0, 0.45))
+
+for (i in 2:length(degrees_of_freedom))
+{
+	lines(x_vals, dt(x_vals, degrees_of_freedom[i]), type='l', lwd=2, col=t_colors[i])
+}
+
+legend('topleft', inset=0, title='degrees of freedom', legend=degrees_of_freedom,
+	   lwd=2, col=t_colors, bg="transparent")
+```
+
+Plot cumulative density functions for t distributions of varying degrees of freedom.
+```{r t-cdf-plot}
+plot(x_vals, pt(x_vals, degrees_of_freedom[1]), type='l', lwd=2, col=t_colors[1],
+	 xlab='x', ylab='Cumulative probability', main='CDF of t distributions', ylim=c(0, 1.0))
+
+for (i in 2:length(degrees_of_freedom))
+{
+	lines(x_vals, pt(x_vals, degrees_of_freedom[i]), type='l', lwd=2, col=t_colors[i])
+}
+
+legend('topleft', inset=0, title='degrees of freedom', legend=degrees_of_freedom,
+	   lwd=2, col=t_colors, bg="transparent")
+```
+
+Plot values on a quantile grid for t distributions of varying degrees of freedom.
+```{r t-q-plot}
+q_vals <- seq(0, 1.0, 0.025)
+
+plot(q_vals, qt(q_vals, degrees_of_freedom[1]), type='l', lwd=2, col=t_colors[1],
+	 xlab='quantile', ylab='quantile value', main='Quantile of t distributions', ylim=c(-5, 5))
+
+for (i in 2:length(degrees_of_freedom))
+{
+	lines(q_vals, qt(q_vals, degrees_of_freedom[i]), type='l', lwd=2, col=t_colors[i])
+}
+
+legend('topleft', inset=0, title='degrees of freedom', legend=degrees_of_freedom,
+	   lwd=2, col=t_colors, bg="transparent")
+```
+
+Plot histograms of 300 randomly generated values from t distributions of varying degrees of freedom.
+```{r t-random-histograms}
+trans_t_colors <- rainbow(n=length(degrees_of_freedom), alpha=0.5)
+t_hist_vals <- sapply(X=degrees_of_freedom, FUN=rt, n=300)
+t_min <- min(t_hist_vals)
+t_max <- max(t_hist_vals)
+
+par(mfcol=c(4, 2))
+for (i in seq_along(degrees_of_freedom))
+{
+	hg <- hist(t_hist_vals[, i], breaks=25, col=t_colors[i],
+			   xlab='t value',
+			   main=paste0('Random t df=', degrees_of_freedom[i])
+			   )
+}
+```
+
+
+## Normal or Gaussian distribution
+
+The normal distribution describes the probability distribution of a value that is centered around a mean with a given standard deviation. The important parameters are mean and SD. Many statistical methods are simpler if you can assume your distribution is normal.
+
+Set up values I'm going to use for standard deviation of normal distributions.
+```{r normal-setup}
+x_vals <- seq(-10, 10, length=100)  # x points at which to include prob density values
+sd_vals <- c(seq(6), 10, 20)
+norm_colors <- rainbow(n=length(sd_vals))
+```
+
+Plot density of normal distributions of varying SD.
+```{r normal-density-plot}
+dev.off()
+plot(x_vals, dnorm(x_vals, mean=0, sd=sd_vals[1]), type='l', lwd=2, col=norm_colors[1],
+	 xlab='x', ylab='Density', main='Density of normal distributions', ylim=c(0, 0.4))
+
+for (i in 2:length(sd_vals))
+{
+	lines(x_vals, dnorm(x_vals, mean=0, sd=sd_vals[i]), type='l', lwd=2, col=norm_colors[i])
+}
+
+legend('topleft', inset=0, title='standard deviation', legend=sd_vals,
+	   lwd=2, col=norm_colors, bg="transparent")
+```
+
+Plot cumulative density functions for normal distributions of varying SD.
+```{r normal-cdf-plot}
+plot(x_vals, pnorm(x_vals, mean=0, sd=sd_vals[1]), type='l', lwd=2, col=norm_colors[1],
+	 xlab='x', ylab='Cumulative probability', main='CDF of normal distributions', ylim=c(0, 1.0))
+
+for (i in 2:length(sd_vals))
+{
+	lines(x_vals, pnorm(x_vals, mean=0, sd=sd_vals[i]), type='l', lwd=2, col=norm_colors[i])
+}
+
+legend('topleft', inset=0, title='standard deviation', legend=sd_vals,
+	   lwd=2, col=norm_colors, bg="transparent")
+```
+
+Plot values on a quantile grid for normal distributions of varying SD.
+```{r normal-q-plot}
+q_vals <- seq(0, 1.0, 0.025)
+
+plot(q_vals, qnorm(q_vals, mean=0, sd=sd_vals[1]), type='l', lwd=2, col=norm_colors[1],
+	 xlab='quantile', ylab='quantile value', main='Quantile of normal distributions', ylim=c(-2, 12))
+
+for (i in 2:length(sd_vals))
+{
+	lines(q_vals, qnorm(q_vals, sd_vals[i]), type='l', lwd=2, col=norm_colors[i])
+}
+
+legend('topleft', inset=0, title='standard deviation', legend=sd_vals,
+	   lwd=2, col=norm_colors, bg="transparent")
+```
+
+Plot histograms of 300 randomly generated values from normal distributions of varying SD.
+```{r normal-random-histograms}
+norm_hist_vals <- sapply(X=sd_vals, FUN=rnorm, n=300, mean=0)
+
+par(mfcol=c(4, 2))
+for (i in seq_along(sd_vals))
+{
+	hg <- hist(norm_hist_vals[, i], breaks=25, col=norm_colors[i],
+			   xlab='normal value',
+			   main=paste0('Random Normal mean=0 SD=', sd_vals[i])
+			   )
+}
+```
+
+## Binomial distribution
+
+The binomial distribution describes the probability of "success" in trials with binary outcomes. For example, tossing a coin and getting heads or tails. The important paramaters here are the number of trials performed (number of coin tosses) and the probability of success (50% for a fair coin).
+
+Set up values I'm going to use for number of trials and success probability in binomial distributions.
+```{r binom-setup}
+x_vals <- seq(0, 50)  # x points at which to include prob density values
+heads_probs <- seq(0.25, 0.5, length=2)
+n_trials <- c(1, 10, 30, 50)
+n_params <- length(heads_probs) * length(n_trials)
+binom_colors <- rainbow(n=n_params)
+```
+
+Plot density of binomial distributions.
+```{r binom-density-plot}
+dev.off()
+
+# par(mfcol=c(length(n_trials), length(heads_probs)))
+plot_n <- 1
+binom_labels <- c()
+for (i in seq_along(heads_probs))
+{
+	for (j in seq_along(n_trials))
+	{
+		if ((i == 1) & (j == 1))
+		{
+			plot(x_vals, dbinom(x_vals, size=n_trials[j], prob=heads_probs[i]), type='l', lwd=2, col=binom_colors[plot_n],
+				 xlab='Number of successes', ylab='Density', main='Binomial distributions')
+		} else {
+			lines(x_vals, dbinom(x_vals, size=n_trials[j], prob=heads_probs[i]), type='l', lwd=2, col=binom_colors[plot_n])
+		}
+		plot_n <- plot_n + 1
+		binom_labels <- c(binom_labels, paste0('prob=', heads_probs[i], ' n_trials=', n_trials[j]))
+	}
+}
+legend('topright', inset=0, title='Parameters', legend=binom_labels,
+	   lwd=2, col=binom_colors, bg="transparent")
+```
+
+Plot cumulative density functions for binomail distributions.
+```{r binom-cdf-plot}
+plot_n <- 1
+binom_labels <- c()
+for (i in seq_along(heads_probs))
+{
+	for (j in seq_along(n_trials))
+	{
+		if ((i == 1) & (j == 1))
+		{
+			plot(x_vals, pbinom(x_vals, size=n_trials[j], prob=heads_probs[i]), type='l', lwd=2, col=binom_colors[plot_n],
+				 xlab='Number of successes', ylab='Cumulative probability', main='CDF of Binomial distributions',
+				 xlim=c(0, max(n_trials)), ylim=c(0, 1))
+		} else {
+			lines(x_vals, pbinom(x_vals, size=n_trials[j], prob=heads_probs[i]), type='l', lwd=2, col=binom_colors[plot_n])
+		}
+		plot_n <- plot_n + 1
+		binom_labels <- c(binom_labels, paste0('prob=', heads_probs[i], ' n_trials=', n_trials[j]))
+	}
+}
+legend('topright', inset=0, title='Parameters', legend=binom_labels,
+	   lwd=2, col=binom_colors, bg="transparent")
+```
+
+Plot values on a quantile grid for binomial distributions.
+```{r binom-q-plot}
+plot_n <- 1
+binom_labels <- c()
+for (i in seq_along(heads_probs))
+{
+	for (j in seq_along(n_trials))
+	{
+		q_vals <- seq(0, n_trials[j], length=11)
+		q_plot_vals <- q_vals / n_trials[j]
+		if ((i == 1) & (j == 1))
+		{
+			plot(q_plot_vals, qbinom(q_vals, size=n_trials[j], prob=heads_probs[i]), type='l', lwd=2, col=binom_colors[plot_n],
+				 xlab='Quantile', ylab='Percentage of successes', main='Quantiles of Binomial distributions')
+		} else {
+			lines(q_plot_vals, pbinom(q_vals, size=n_trials[j], prob=heads_probs[i]), type='l', lwd=2, col=binom_colors[plot_n])
+		}
+		plot_n <- plot_n + 1
+		binom_labels <- c(binom_labels, paste0('prob=', heads_probs[i], ' n_trials=', n_trials[j]))
+	}
+}
+legend('topright', inset=0, title='Parameters', legend=binom_labels,
+	   lwd=2, col=binom_colors, bg="transparent")
+```
+
+Plot histograms of 300 randomly generated values from binomiall distributions.
+```{r normal-random-histograms}
+par(mfcol=c(length(n_trials), length(heads_probs)))
+plot_n <- 1
+for (i in seq_along(heads_probs))
+{
+	binom_hist_vals <- sapply(X=n_trials, FUN=rbinom, n=300, prob=heads_probs[i])
+	for (j in seq_along(n_trials))
+	{
+		hg <- hist(binom_hist_vals[, j], breaks=25, col=binom_colors[plot_n],
+				   xlab='normal value',
+				   main=paste('Random binomial', paste0('prob=', heads_probs[i], ' n_trials=', n_trials[j]))
+				   )
+		plot_n <- plot_n + 1
+	}
+}
+```
+
+## Chi squared distribution
+
+Set up values I'm going to use for x and the degrees of freedom for looking at the t distribution.
+```{r chisq-setup}
+x_vals <- seq(-4, 4, length=100)  # x points at which to include prob density values
+degrees_of_freedom <- c(seq(5), 10 ** seq(3))
+t_colors <- rainbow(n=length(degrees_of_freedom))
+```
+
+Plot the t distribution for each of the specified values for degrees of freedom.
+```{r chisq-density-plot}
+plot(x_vals, dt(x_vals, degrees_of_freedom[1]), type='l', lwd=2, col=t_colors[1],
+	 xlab='x', ylab='Density', main='Density of t distributions', ylim=c(0, 0.45))
+
+for (i in 2:length(degrees_of_freedom))
+{
+	lines(x_vals, dt(x_vals, degrees_of_freedom[i]), type='l', lwd=2, col=t_colors[i])
+}
+
+legend('topleft', inset=0, title='degrees of freedom', legend=degrees_of_freedom,
+	   lwd=2, col=t_colors, bg="transparent")
+```
+
+Plot cumulative density functions for t distributions of varying degrees of freedom.
+```{r chisq-cdf-plot}
+plot(x_vals, pt(x_vals, degrees_of_freedom[1]), type='l', lwd=2, col=t_colors[1],
+	 xlab='x', ylab='Cumulative probability', main='CDF of t distributions', ylim=c(0, 1.0))
+
+for (i in 2:length(degrees_of_freedom))
+{
+	lines(x_vals, pt(x_vals, degrees_of_freedom[i]), type='l', lwd=2, col=t_colors[i])
+}
+
+legend('topleft', inset=0, title='degrees of freedom', legend=degrees_of_freedom,
+	   lwd=2, col=t_colors, bg="transparent")
+```
+
+Plot values on a quantile grid for t distributions of varying degrees of freedom.
+```{r chisq-q-plot}
+q_vals <- seq(0, 1.0, 0.025)
+
+plot(q_vals, qt(q_vals, degrees_of_freedom[1]), type='l', lwd=2, col=t_colors[1],
+	 xlab='quantile', ylab='quantile value', main='Quantile of t distributions', ylim=c(-5, 5))
+
+for (i in 2:length(degrees_of_freedom))
+{
+	lines(q_vals, qt(q_vals, degrees_of_freedom[i]), type='l', lwd=2, col=t_colors[i])
+}
+
+legend('topleft', inset=0, title='degrees of freedom', legend=degrees_of_freedom,
+	   lwd=2, col=t_colors, bg="transparent")
+```
+
+Plot histograms of 300 randomly generated values from t distributions of varying degrees of freedom.
+```{r chisq-random-histograms}
+trans_t_colors <- rainbow(n=length(degrees_of_freedom), alpha=0.5)
+t_hist_vals <- sapply(X=degrees_of_freedom, FUN=rt, n=300)
+t_min <- min(t_hist_vals)
+t_max <- max(t_hist_vals)
+
+par(mfcol=c(4, 2))
+for (i in seq_along(degrees_of_freedom))
+{
+	hg <- hist(t_hist_vals[, i], breaks=25, col=t_colors[i],
+			   xlab='t value',
+			   main=paste0('Random t df=', degrees_of_freedom[i])
+			   )
+}
+```
+
+## Beta distribution
+
+## Poisson distribution
+
+## Uniform distribution
+
