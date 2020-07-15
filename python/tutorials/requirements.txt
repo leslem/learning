@@ -3,6 +3,8 @@ jupytext
 matplotlib
 nltk
 numpy
+opencv-python
+opencv-contrib-python
 pandas
 plotly
 requests
