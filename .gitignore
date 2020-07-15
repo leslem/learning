@@ -5,6 +5,7 @@
 *.jpg
 R/*.html
 data-science/*.html
+data-science/*/*.html
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
