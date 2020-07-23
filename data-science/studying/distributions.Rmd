@@ -19,9 +19,79 @@ library(ggplot2)
 ```
 
 
+## Normal or Gaussian distribution
+
+The normal distribution describes the probability distribution of a value that is centered around a mean with a given standard deviation. The important parameters are mean and SD. Many statistical methods are simpler if you can assume your distribution is normal.
+
+Set up values I'm going to use for standard deviation of normal distributions.
+```{r normal-setup}
+x_vals <- seq(-10, 10, length=100)  # x points at which to include prob density values
+sd_vals <- c(seq(6), 10, 20)
+norm_colors <- rainbow(n=length(sd_vals))
+```
+
+Plot density of normal distributions of varying SD.
+```{r normal-density-plot}
+plot(x_vals, dnorm(x_vals, mean=0, sd=sd_vals[1]), type='l', lwd=2, col=norm_colors[1],
+	 xlab='x', ylab='Density', main='Density of normal distributions', ylim=c(0, 0.4))
+
+for (i in 2:length(sd_vals))
+{
+	lines(x_vals, dnorm(x_vals, mean=0, sd=sd_vals[i]), type='l', lwd=2, col=norm_colors[i])
+}
+
+legend('topleft', inset=0, title='standard deviation', legend=sd_vals,
+	   lwd=2, col=norm_colors, bg="transparent")
+```
+
+Plot cumulative density functions for normal distributions of varying SD.
+```{r normal-cdf-plot}
+plot(x_vals, pnorm(x_vals, mean=0, sd=sd_vals[1]), type='l', lwd=2, col=norm_colors[1],
+	 xlab='x', ylab='Cumulative probability', main='CDF of normal distributions', ylim=c(0, 1.0))
+
+for (i in 2:length(sd_vals))
+{
+	lines(x_vals, pnorm(x_vals, mean=0, sd=sd_vals[i]), type='l', lwd=2, col=norm_colors[i])
+}
+
+legend('topleft', inset=0, title='standard deviation', legend=sd_vals,
+	   lwd=2, col=norm_colors, bg="transparent")
+```
+
+Plot values on a quantile grid for normal distributions of varying SD.
+```{r normal-q-plot}
+q_vals <- seq(0, 1.0, 0.025)
+
+plot(q_vals, qnorm(q_vals, mean=0, sd=sd_vals[1]), type='l', lwd=2, col=norm_colors[1],
+	 xlab='quantile', ylab='quantile value', main='Quantile of normal distributions', ylim=c(-2, 12))
+
+for (i in 2:length(sd_vals))
+{
+	lines(q_vals, qnorm(q_vals, sd_vals[i]), type='l', lwd=2, col=norm_colors[i])
+}
+
+legend('topleft', inset=0, title='standard deviation', legend=sd_vals,
+	   lwd=2, col=norm_colors, bg="transparent")
+```
+
+Plot histograms of 300 randomly generated values from normal distributions of varying SD.
+```{r normal-random-histograms}
+norm_hist_vals <- sapply(X=sd_vals, FUN=rnorm, n=300, mean=0)
+
+par(mfcol=c(length(sd_vals) / 2, 2))
+for (i in seq_along(sd_vals))
+{
+	hg <- hist(norm_hist_vals[, i], breaks=25, col=norm_colors[i],
+			   xlab='normal value',
+			   main=paste0('Random Normal mean=0 SD=', sd_vals[i])
+			   )
+}
+dev.off()
+```
+
 ## Student's t-distribution
 
-The Student's t distribution is used for estimating the mean of a normally distrubuted populatino when the sample size is small and the populations standard deviation is unknown. The important parameters are the sample size and the degrees of freedom (equal to sample size - 1).
+The Student's t distribution describes the location of a sample mean relative to the true mean of the population. It is used for estimating the mean of a normally distrubuted populatino when the sample size is small and the population's standard deviation is unknown. The important parameters are the sample size and the degrees of freedom (equal to sample size - 1). This approaches the normal distribution as df increases.
 
 Set up values I'm going to use for x and the degrees of freedom for looking at the t distribution.
 ```{r t-setup}
@@ -76,12 +146,9 @@ legend('topleft', inset=0, title='degrees of freedom', legend=degrees_of_freedom
 
 Plot histograms of 300 randomly generated values from t distributions of varying degrees of freedom.
 ```{r t-random-histograms}
-trans_t_colors <- rainbow(n=length(degrees_of_freedom), alpha=0.5)
 t_hist_vals <- sapply(X=degrees_of_freedom, FUN=rt, n=300)
-t_min <- min(t_hist_vals)
-t_max <- max(t_hist_vals)
 
-par(mfcol=c(4, 2))
+par(mfcol=c(length(degrees_of_freedom) / 2, 2))
 for (i in seq_along(degrees_of_freedom))
 {
 	hg <- hist(t_hist_vals[, i], breaks=25, col=t_colors[i],
@@ -89,82 +156,358 @@ for (i in seq_along(degrees_of_freedom))
 			   main=paste0('Random t df=', degrees_of_freedom[i])
 			   )
 }
-```
-
-
-## Normal or Gaussian distribution
-
-The normal distribution describes the probability distribution of a value that is centered around a mean with a given standard deviation. The important parameters are mean and SD. Many statistical methods are simpler if you can assume your distribution is normal.
-
-Set up values I'm going to use for standard deviation of normal distributions.
-```{r normal-setup}
-x_vals <- seq(-10, 10, length=100)  # x points at which to include prob density values
-sd_vals <- c(seq(6), 10, 20)
-norm_colors <- rainbow(n=length(sd_vals))
-```
-
-Plot density of normal distributions of varying SD.
-```{r normal-density-plot}
 dev.off()
-plot(x_vals, dnorm(x_vals, mean=0, sd=sd_vals[1]), type='l', lwd=2, col=norm_colors[1],
-	 xlab='x', ylab='Density', main='Density of normal distributions', ylim=c(0, 0.4))
-
-for (i in 2:length(sd_vals))
-{
-	lines(x_vals, dnorm(x_vals, mean=0, sd=sd_vals[i]), type='l', lwd=2, col=norm_colors[i])
-}
-
-legend('topleft', inset=0, title='standard deviation', legend=sd_vals,
-	   lwd=2, col=norm_colors, bg="transparent")
 ```
 
-Plot cumulative density functions for normal distributions of varying SD.
-```{r normal-cdf-plot}
-plot(x_vals, pnorm(x_vals, mean=0, sd=sd_vals[1]), type='l', lwd=2, col=norm_colors[1],
-	 xlab='x', ylab='Cumulative probability', main='CDF of normal distributions', ylim=c(0, 1.0))
 
-for (i in 2:length(sd_vals))
-{
-	lines(x_vals, pnorm(x_vals, mean=0, sd=sd_vals[i]), type='l', lwd=2, col=norm_colors[i])
-}
+## Gamma distribution
 
-legend('topleft', inset=0, title='standard deviation', legend=sd_vals,
-	   lwd=2, col=norm_colors, bg="transparent")
+The Gamma distribution describes the probability distribution of continuous variables that are always positive and are skewed. It is used for modeling time between Poisson events, cohesion, and shear strength.
+
+The Chi-squared and exponential distributions are special cases of a Gamma distribution. Chi-squared is a gamma distribution where shape = degrees of freedom / 2 and scale = 2. The exponential distribution is a gamma distribution with scale = 1.
+
+There are two main parameters that describe a Gamma distribution, but there are three different systems.
+
+1. k = shape and theta = scale
+2. alpha = k = shape and rate = inverse scale = beta = 1 / theta
+3. mu = mean and k = shape where mu = k*theta = alpha / beta
+
+I'll use the first system. There are also three basic gamma distribution shapes, based on the "shape" parameter.
+
+1. shape < 1.0; mean < sd; asymptotic to both axes
+2. shape = 1.0; exponential with scale; mean = sd; time to first Poisson event
+3. shape > 1.9; mean > sd
+
+Set up values I'm going to use for x and the degrees of freedom for looking at the Gamma distribution.
+```{r gamma-setup}
+shape_vals <- c(0.5, 1.0, 2.0)  # Three different cases based on shape
+scale_vals <- c(0.5, 1.0, 2.0)
+params <- expand.grid(shape_vals, scale_vals)
+colnames(params) <- c('shape', 'scale')
+x_vals <- seq(0, max(scale_vals) ** 2 * max(shape_vals), length=100)  # x points at which to include prob density values
+gamma_colors <- rainbow(n=nrow(params))
 ```
 
-Plot values on a quantile grid for normal distributions of varying SD.
-```{r normal-q-plot}
+Plot the Gamma distribution for each of the specified values for degrees of freedom.
+```{r gamma-density-plot}
+for (i in 1:nrow(params))
+{
+	if (i == 1)
+	{
+		plot(x_vals, dgamma(x_vals, shape=params$shape[i], scale=params$scale[i]),
+			 type='l', lwd=2, col=gamma_colors[i],
+			 xlim=c(0, max(scale_vals) ** 2 * max(shape_vals)),
+			 xlab='x', ylab='Density', main='Gamma distributions')
+	} else {
+		lines(x_vals, dgamma(x_vals, shape=params$shape[i], scale=params$scale[i]),
+			 type='l', lwd=2, col=gamma_colors[i])
+	}
+}
+legend('topright', inset=0, title='Parameters', lwd=2, col=gamma_colors, bg="transparent",
+	   legend=paste0('shape=', params$shape, ' scale=', params$scale))
+```
+
+Plot cumulative density functions for Gamma distributions of varying degrees of freedom.
+```{r gamma-cdf-plot}
+for (i in 1:nrow(params))
+{
+	if (i == 1)
+	{
+		plot(x_vals, pgamma(x_vals, shape=params$shape[i], scale=params$scale[i]),
+			 type='l', lwd=2, col=gamma_colors[i],
+			 xlim=c(0, max(scale_vals) ** 2 * max(shape_vals)),
+			 xlab='x', ylab='Cumulative probability', main='CDF of Gamma distributions')
+	} else {
+		lines(x_vals, pgamma(x_vals, shape=params$shape[i], scale=params$scale[i]),
+			 type='l', lwd=2, col=gamma_colors[i])
+	}
+}
+legend('bottomright', inset=0, title='Parameters', lwd=2, col=gamma_colors, bg="transparent",
+	   legend=paste0('shape=', params$shape, ' scale=', params$scale))
+```
+
+Plot values on a quantile grid for Gamma distributions of varying degrees of freedom.
+```{r gamma-q-plot}
 q_vals <- seq(0, 1.0, 0.025)
 
-plot(q_vals, qnorm(q_vals, mean=0, sd=sd_vals[1]), type='l', lwd=2, col=norm_colors[1],
-	 xlab='quantile', ylab='quantile value', main='Quantile of normal distributions', ylim=c(-2, 12))
-
-for (i in 2:length(sd_vals))
+for (i in 1:nrow(params))
 {
-	lines(q_vals, qnorm(q_vals, sd_vals[i]), type='l', lwd=2, col=norm_colors[i])
+	if (i == 1)
+	{
+		plot(q_vals, qgamma(q_vals, shape=params$shape[i], scale=params$scale[i]),
+			 type='l', lwd=2, col=gamma_colors[i],
+			 ylim=c(0, qgamma(q_vals[length(q_vals) - 1], shape=max(shape_vals), scale=max(scale_vals))),
+			 xlab='x', ylab='Quantile value', main='Quantiles of Gamma distributions')
+	} else {
+		lines(q_vals, qgamma(q_vals, shape=params$shape[i], scale=params$scale[i]),
+			 type='l', lwd=2, col=gamma_colors[i])
+	}
 }
+legend('topleft', inset=0, title='Parameters', lwd=2, col=gamma_colors, bg="transparent",
+	   legend=paste0('shape=', params$shape, ' scale=', params$scale))
 
-legend('topleft', inset=0, title='standard deviation', legend=sd_vals,
-	   lwd=2, col=norm_colors, bg="transparent")
 ```
 
-Plot histograms of 300 randomly generated values from normal distributions of varying SD.
-```{r normal-random-histograms}
-norm_hist_vals <- sapply(X=sd_vals, FUN=rnorm, n=300, mean=0)
+Plot histograms of 300 randomly generated values from Gamma distributions of varying degrees of freedom.
+```{r gamma-random-histograms}
+gamma_hist_vals <- mapply(FUN=rgamma, params$shape, params$scale, MoreArgs=list(n=300))
 
-par(mfcol=c(4, 2))
-for (i in seq_along(sd_vals))
+par(mfcol=c(length(shape_vals), length(scale_vals)))
+for (i in 1:nrow(params))
 {
-	hg <- hist(norm_hist_vals[, i], breaks=25, col=norm_colors[i],
-			   xlab='normal value',
-			   main=paste0('Random Normal mean=0 SD=', sd_vals[i])
+	hg <- hist(gamma_hist_vals[, i], breaks=25, col=gamma_colors[i],
+			   xlab='Gamma value',
+			   main=paste0('shape=', params$shape[i], ' scale=', params$scale[i])
 			   )
 }
+dev.off()
 ```
+
+
+## Chi squared distribution
+
+Chi-squared describes the distribution of the sum of squares of DF normalized independent random variables. It isused to assess departures from expectation, compare contingency tables to the hypothesis of random frequency, and to assess the goodness of fit of a model to the data. In each situation you are comparing observed counts to expected counts. The main parameter is the degrees of freedom (DF). Chi-squared is a special case of the gamma distribution where shape = degrees of freedom / 2 and scale = 2.
+
+The mean of the distribution is equal to the degrees of freedom. Because the distribution is skewed right, the mean is higher than the peak of the distribution. As degrees of freedom approaches infinity, the distribution approaches normality. The two are practically the same for degrees of freedom greater than 90.
+
+Set up values I'm going to use for x and the degrees of freedom for looking at the Chi-squared distribution.
+```{r chisq-setup}
+degrees_of_freedom <- seq(10)
+x_vals <- seq(0, 1.5*max(degrees_of_freedom), length=100)  # x points at which to include prob density values
+chisq_colors <- rainbow(n=length(degrees_of_freedom))
+```
+
+Plot the Chi-squared distribution for each of the specified values for degrees of freedom.
+```{r chisq-density-plot}
+plot(x_vals, dchisq(x_vals, degrees_of_freedom[1]), type='l', lwd=2, col=chisq_colors[1],
+	 xlab='x', ylab='Density', main='Chi-squared distributions', ylim=c(0, 1))
+
+for (i in 2:length(degrees_of_freedom))
+{
+	lines(x_vals, dchisq(x_vals, degrees_of_freedom[i]), type='l', lwd=2, col=chisq_colors[i])
+}
+
+legend('topright', inset=0, title='degrees of freedom', legend=degrees_of_freedom,
+	   lwd=2, col=chisq_colors, bg="transparent")
+```
+
+Plot cumulative density functions for Chi-squared distributions of varying degrees of freedom.
+```{r chisq-cdf-plot}
+plot(x_vals, pchisq(x_vals, degrees_of_freedom[1]), type='l', lwd=2, col=chisq_colors[1],
+	 xlab='x', ylab='Cumulative probability', main='CDF of Chi-squared distributions', ylim=c(0, 1.0))
+
+for (i in 2:length(degrees_of_freedom))
+{
+	lines(x_vals, pchisq(x_vals, degrees_of_freedom[i]), type='l', lwd=2, col=chisq_colors[i])
+}
+
+legend('topleft', inset=0, title='degrees of freedom', legend=degrees_of_freedom,
+	   lwd=2, col=chisq_colors, bg="transparent")
+```
+
+Plot values on a quantile grid for Chi-squared distributions of varying degrees of freedom.
+```{r chisq-q-plot}
+q_vals <- seq(0, 1.0, 0.025)
+
+plot(q_vals, qchisq(q_vals, degrees_of_freedom[1]), type='l', lwd=2, col=chisq_colors[1],
+	 xlab='quantile', ylab='quantile value', main='Quantile of Chi-squared distributions',
+	 ylim=c(0, qchisq(q_vals[length(q_vals) - 1], max(degrees_of_freedom))))
+
+for (i in 2:length(degrees_of_freedom))
+{
+	lines(q_vals, qchisq(q_vals, degrees_of_freedom[i]), type='l', lwd=2, col=chisq_colors[i])
+}
+
+legend('topleft', inset=0, title='degrees of freedom', legend=degrees_of_freedom,
+	   lwd=2, col=chisq_colors, bg="transparent")
+```
+
+Plot histograms of 300 randomly generated values from Chi-squared distributions of varying degrees of freedom.
+```{r chisq-random-histograms}
+chisq_hist_vals <- sapply(X=degrees_of_freedom, FUN=rchisq, n=300)
+
+par(mfcol=c(length(degrees_of_freedom) / 2, 2))
+for (i in seq_along(degrees_of_freedom))
+{
+	hg <- hist(chisq_hist_vals[, i], breaks=25, col=chisq_colors[i],
+			   xlab='Chi-squared value',
+			   main=paste0('Random Chi-squared df=', degrees_of_freedom[i])
+			   )
+}
+dev.off()
+```
+
+## Poisson distribution
+
+The Poisson distribution describes the distribution of the number of events in sampled units of time or space. The main parameter is lambda, which is the rate at which events occur. The variance of a Poisson distribution is equal to lambda. Events in question must occur with a known constant mean rate and independently of the time since the last event.
+
+Poisson is related closely to other distributions:
+
+- Poisson models the number of events
+- Gamma models the time until k events
+- Exponential (gamma with shape = 1) models the time until the first event
+
+Set up values I'm going to use for x and the lambda for looking at the Poisson distribution.
+```{r pois-setup}
+lambdas <- seq(10)
+max_variance <- max(lambdas)
+x_vals <- seq(0, max(lambdas) + max_variance/2)  # x points at which to include prob density values
+pois_colors <- rainbow(n=length(lambdas))
+```
+
+Plot the Poisson distribution for each of the specified values for lambda.
+```{r pois-density-plot}
+plot(x_vals, dpois(x_vals, lambdas[1]), type='l', lwd=2, col=pois_colors[1],
+	 xlab='x', ylab='Density', main='Poisson distributions',
+	 ylim=c(0, 0.5), xlim=c(0, max(lambdas) + max_variance/2))
+
+for (i in 2:length(lambdas))
+{
+	lines(x_vals, dpois(x_vals, lambdas[i]), type='l', lwd=2, col=pois_colors[i])
+}
+
+legend('topright', inset=0, title='lambda', legend=lambdas,
+	   lwd=2, col=pois_colors, bg="transparent")
+```
+
+Plot cumulative density functions for Poisson distributions of varying lambda.
+```{r pois-cdf-plot}
+plot(x_vals, ppois(x_vals, lambdas[1]), type='l', lwd=2, col=pois_colors[1],
+	 xlab='x', ylab='Cumulative probability', main='CDF of Poisson distributions', ylim=c(0, 1.0))
+
+for (i in 2:length(lambdas))
+{
+	lines(x_vals, ppois(x_vals, lambdas[i]), type='l', lwd=2, col=pois_colors[i])
+}
+
+legend('topleft', inset=0, title='lambda', legend=lambdas,
+	   lwd=2, col=pois_colors, bg="transparent")
+```
+
+Plot values on a quantile grid for Poisson distributions of varying lambda.
+```{r pois-q-plot}
+q_vals <- seq(0, 1.0, 0.025)
+
+plot(q_vals, qpois(q_vals, lambdas[1]), type='l', lwd=2, col=pois_colors[1],
+	 xlab='quantile', ylab='quantile value', main='Quantile of Poisson distributions',
+	 ylim=c(0, qpois(q_vals[length(q_vals) - 1], max(lambdas))))
+
+for (i in 2:length(lambdas))
+{
+	lines(q_vals, qpois(q_vals, lambdas[i]), type='l', lwd=2, col=pois_colors[i])
+}
+
+legend('topleft', inset=0, title='lambda', legend=lambdas,
+	   lwd=2, col=pois_colors, bg="transparent")
+```
+
+Plot histograms of 300 randomly generated values from Poisson distributions of varying lambda.
+```{r pois-random-histograms}
+pois_hist_vals <- sapply(X=lambdas, FUN=rpois, n=300)
+
+par(mfcol=c(length(lambdas) / 2, 2))
+for (i in seq_along(lambdas))
+{
+	hg <- hist(pois_hist_vals[, i], breaks=25, col=pois_colors[i],
+			   xlab='Poisson value',
+			   main=paste0('Random Poisson df=', lambdas[i])
+			   )
+}
+dev.off()
+```
+
+
+## Beta distribution
+
+The Beta distribution describes the probability distribution of a random variable that is limited to an interval of finite length. The distribution ranges from 0 to 1. The shape parameters are alpha and beta. It is a good model for the random behavior of percentages and proportions. It's also useful as the prior distrubtion for Bernouli, binomial, and geometric variables in Bayesian inference. In genetics, it's used as the prior for mutation rates. Relatedly, the Dirichlet distribution is a multi-variate Beta distribution.
+
+Set up values I'm going to use for x and the degrees of freedom for looking at the Beta distribution.
+```{r beta-setup}
+shape1_vals <- c(0.5, 1.0, 2.0)  # Three different cases based on shape1
+shape2_vals <- c(0.5, 1.0, 2.0)
+params <- expand.grid(shape1_vals, shape2_vals)
+colnames(params) <- c('shape1', 'shape2')
+x_vals <- seq(0, 1, length=100)  # x points at which to include prob density values
+beta_colors <- rainbow(n=nrow(params))
+```
+
+Plot the Beta distribution for each of the specified values for degrees of freedom.
+```{r beta-density-plot}
+for (i in 1:nrow(params))
+{
+	if (i == 1)
+	{
+		plot(x_vals, dbeta(x_vals, shape1=params$shape1[i], shape2=params$shape2[i]),
+			 type='l', lwd=2, col=beta_colors[i],
+			 xlim=c(0, 1), ylim=c(0, 3),
+			 xlab='x', ylab='Density', main='Beta distributions')
+	} else {
+		lines(x_vals, dbeta(x_vals, shape1=params$shape1[i], shape2=params$shape2[i]),
+			 type='l', lwd=2, col=beta_colors[i])
+	}
+}
+legend('topright', inset=0, title='Parameters', lwd=2, col=beta_colors, bg="transparent",
+	   legend=paste0('shape1=', params$shape1, ' shape2=', params$shape2))
+```
+
+Plot cumulative density functions for Beta distributions of varying degrees of freedom.
+```{r beta-cdf-plot}
+for (i in 1:nrow(params))
+{
+	if (i == 1)
+	{
+		plot(x_vals, pbeta(x_vals, shape1=params$shape1[i], shape2=params$shape2[i]),
+			 type='l', lwd=2, col=beta_colors[i],
+			 xlab='x', ylab='Cumulative probability', main='CDF of Beta distributions')
+	} else {
+		lines(x_vals, pbeta(x_vals, shape1=params$shape1[i], shape2=params$shape2[i]),
+			 type='l', lwd=2, col=beta_colors[i])
+	}
+}
+legend('bottomright', inset=0, title='Parameters', lwd=2, col=beta_colors, bg="transparent",
+	   legend=paste0('shape1=', params$shape1, ' shape2=', params$shape2))
+```
+
+Plot values on a quantile grid for Beta distributions of varying degrees of freedom.
+```{r beta-q-plot}
+q_vals <- seq(0, 1.0, 0.025)
+
+for (i in 1:nrow(params))
+{
+	if (i == 1)
+	{
+		plot(q_vals, qbeta(q_vals, shape1=params$shape1[i], shape2=params$shape2[i]),
+			 type='l', lwd=2, col=beta_colors[i],
+			 xlab='x', ylab='Quantile value', main='Quantiles of Beta distributions')
+	} else {
+		lines(q_vals, qbeta(q_vals, shape1=params$shape1[i], shape2=params$shape2[i]),
+			 type='l', lwd=2, col=beta_colors[i])
+	}
+}
+legend('topleft', inset=0, title='Parameters', lwd=2, col=beta_colors, bg="transparent",
+	   legend=paste0('shape1=', params$shape1, ' shape2=', params$shape2))
+
+```
+
+Plot histograms of 300 randomly generated values from Beta distributions of varying degrees of freedom.
+```{r beta-random-histograms}
+beta_hist_vals <- mapply(FUN=rbeta, params$shape1, params$shape2, MoreArgs=list(n=300))
+
+par(mfcol=c(length(shape1_vals), length(shape2_vals)))
+for (i in 1:nrow(params))
+{
+	hg <- hist(beta_hist_vals[, i], breaks=25, col=beta_colors[i],
+			   xlab='Beta value',
+			   main=paste0('shape1=', params$shape1[i], ' shape2=', params$shape2[i])
+			   )
+}
+dev.off()
+```
+
 
 ## Binomial distribution
 
-The binomial distribution describes the probability of "success" in trials with binary outcomes. For example, tossing a coin and getting heads or tails. The important paramaters here are the number of trials performed (number of coin tosses) and the probability of success (50% for a fair coin).
+The binomial distribution describes the number of successes in a sequence of independent experiments or "trials". It is used to model the probability of "success" in trials with binary outcomes. For example, tossing a coin and getting heads or tails. The important paramaters here are the number of trials performed (number of coin tosses) and the probability of success (50% for a fair coin). If the trials are not independent, you can use the hypergeometric distribution instead.
 
 Set up values I'm going to use for number of trials and success probability in binomial distributions.
 ```{r binom-setup}
@@ -177,8 +520,6 @@ binom_colors <- rainbow(n=n_params)
 
 Plot density of binomial distributions.
 ```{r binom-density-plot}
-dev.off()
-
 # par(mfcol=c(length(n_trials), length(heads_probs)))
 plot_n <- 1
 binom_labels <- c()
@@ -251,7 +592,7 @@ legend('topright', inset=0, title='Parameters', legend=binom_labels,
 ```
 
 Plot histograms of 300 randomly generated values from binomiall distributions.
-```{r normal-random-histograms}
+```{r binom-random-histograms}
 par(mfcol=c(length(n_trials), length(heads_probs)))
 plot_n <- 1
 for (i in seq_along(heads_probs))
@@ -266,81 +607,82 @@ for (i in seq_along(heads_probs))
 		plot_n <- plot_n + 1
 	}
 }
+dev.off()
 ```
 
-## Chi squared distribution
-
-Set up values I'm going to use for x and the degrees of freedom for looking at the t distribution.
-```{r chisq-setup}
-x_vals <- seq(-4, 4, length=100)  # x points at which to include prob density values
-degrees_of_freedom <- c(seq(5), 10 ** seq(3))
-t_colors <- rainbow(n=length(degrees_of_freedom))
-```
-
-Plot the t distribution for each of the specified values for degrees of freedom.
-```{r chisq-density-plot}
-plot(x_vals, dt(x_vals, degrees_of_freedom[1]), type='l', lwd=2, col=t_colors[1],
-	 xlab='x', ylab='Density', main='Density of t distributions', ylim=c(0, 0.45))
-
-for (i in 2:length(degrees_of_freedom))
-{
-	lines(x_vals, dt(x_vals, degrees_of_freedom[i]), type='l', lwd=2, col=t_colors[i])
-}
-
-legend('topleft', inset=0, title='degrees of freedom', legend=degrees_of_freedom,
-	   lwd=2, col=t_colors, bg="transparent")
-```
-
-Plot cumulative density functions for t distributions of varying degrees of freedom.
-```{r chisq-cdf-plot}
-plot(x_vals, pt(x_vals, degrees_of_freedom[1]), type='l', lwd=2, col=t_colors[1],
-	 xlab='x', ylab='Cumulative probability', main='CDF of t distributions', ylim=c(0, 1.0))
-
-for (i in 2:length(degrees_of_freedom))
-{
-	lines(x_vals, pt(x_vals, degrees_of_freedom[i]), type='l', lwd=2, col=t_colors[i])
-}
-
-legend('topleft', inset=0, title='degrees of freedom', legend=degrees_of_freedom,
-	   lwd=2, col=t_colors, bg="transparent")
-```
-
-Plot values on a quantile grid for t distributions of varying degrees of freedom.
-```{r chisq-q-plot}
-q_vals <- seq(0, 1.0, 0.025)
-
-plot(q_vals, qt(q_vals, degrees_of_freedom[1]), type='l', lwd=2, col=t_colors[1],
-	 xlab='quantile', ylab='quantile value', main='Quantile of t distributions', ylim=c(-5, 5))
-
-for (i in 2:length(degrees_of_freedom))
-{
-	lines(q_vals, qt(q_vals, degrees_of_freedom[i]), type='l', lwd=2, col=t_colors[i])
-}
-
-legend('topleft', inset=0, title='degrees of freedom', legend=degrees_of_freedom,
-	   lwd=2, col=t_colors, bg="transparent")
-```
-
-Plot histograms of 300 randomly generated values from t distributions of varying degrees of freedom.
-```{r chisq-random-histograms}
-trans_t_colors <- rainbow(n=length(degrees_of_freedom), alpha=0.5)
-t_hist_vals <- sapply(X=degrees_of_freedom, FUN=rt, n=300)
-t_min <- min(t_hist_vals)
-t_max <- max(t_hist_vals)
-
-par(mfcol=c(4, 2))
-for (i in seq_along(degrees_of_freedom))
-{
-	hg <- hist(t_hist_vals[, i], breaks=25, col=t_colors[i],
-			   xlab='t value',
-			   main=paste0('Random t df=', degrees_of_freedom[i])
-			   )
-}
-```
-
-## Beta distribution
-
-## Poisson distribution
 
 ## Uniform distribution
+
+The uniform or rectangular distribution describes the probability distribution of a random variable that has no constraints other than a given range. All values in the range are equally likely. The parameters that describe this distribution are the bounds, or maximum and minimum values. The bounds can be open or closed.
+
+Set up values I'm going to use for bounds of the Uniform distribution.
+I'm only going to do two examples because it's so straightforward.
+```{r unif-setup}
+bounds <- c(10, 20)
+x_vals <- seq(-5, bounds[2] + 5, length=100)  # x points at which to include prob density values
+unif_colors <- rainbow(n=length(bounds))
+bound_labels <- paste0('min=0 max=', bounds)
+```
+
+Plot the Uniform distribution for each of the specified values for bounds.
+```{r unif-density-plot}
+plot(x_vals, dunif(x_vals, min=0, max=bounds[1]), type='l', lwd=2, col=unif_colors[1],
+	 xlab='x', ylab='Density', main='Uniform distributions',
+	 ylim=c(0, 0.15))
+
+for (i in 2:length(bounds))
+{
+	lines(x_vals, dunif(x_vals, min=0, max=bounds[i]), type='l', lwd=2, col=unif_colors[i])
+}
+
+legend('topright', inset=0, title='Bounds', legend=bound_labels,
+	   lwd=2, col=unif_colors, bg="transparent")
+```
+
+Plot cumulative density functions for Uniform distributions of varying bounds.
+```{r unif-cdf-plot}
+plot(x_vals, punif(x_vals, min=0, max=bounds[1]), type='l', lwd=2, col=unif_colors[1],
+	 xlab='x', ylab='Cumulative probability', main='CDF of Uniform distributions', ylim=c(0, 1.0))
+
+for (i in 2:length(bounds))
+{
+	lines(x_vals, punif(x_vals, min=0, max=bounds[i]), type='l', lwd=2, col=unif_colors[i])
+}
+
+legend('topleft', inset=0, title='Bounds', legend=bound_labels,
+	   lwd=2, col=unif_colors, bg="transparent")
+```
+
+Plot values on a quantile grid for Uniform distributions of varying bounds.
+```{r unif-q-plot}
+q_vals <- seq(0, 1.0, 0.025)
+
+plot(q_vals, qunif(q_vals, min=0, max=bounds[1]), type='l', lwd=2, col=unif_colors[1],
+	 xlab='quantile', ylab='quantile value', main='Quantile of Uniform distributions',
+	 ylim=c(0, qunif(q_vals[length(q_vals) - 1], min=0, max=max(bounds))))
+
+for (i in 2:length(bounds))
+{
+	lines(q_vals, qunif(q_vals, min=0, max=bounds[i]), type='l', lwd=2, col=unif_colors[i])
+}
+
+legend('topleft', inset=0, title='Bounds', legend=bound_labels,
+	   lwd=2, col=unif_colors, bg="transparent")
+```
+
+Plot histograms of 300 randomly generated values from Uniform distributions of varying bounds.
+```{r unif-random-histograms}
+unif_hist_vals <- sapply(X=bounds, FUN=runif, n=300, min=0)
+
+par(mfcol=c(2, length(bounds) / 2))
+for (i in seq_along(bounds))
+{
+	hg <- hist(unif_hist_vals[, i], breaks=25, col=unif_colors[i],
+			   xlab='Uniform value',
+			   main=paste0('Random Uniform min=0 max=', max=bounds[i])
+			   )
+}
+dev.off()
+```
+
 
