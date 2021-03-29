@@ -4,29 +4,57 @@
 #
 #    pip-compile requirements.in
 #
-appnope==0.1.0            # via ipython
-backcall==0.1.0           # via ipython
-click==7.0                # via pip-tools
-cycler==0.10.0            # via matplotlib
-decorator==4.4.0          # via ipython, traitlets
-ipython-genutils==0.2.0   # via traitlets
+backcall==0.1.0
+    # via ipython
+click==7.0
+    # via pip-tools
+cycler==0.10.0
+    # via matplotlib
+decorator==4.4.0
+    # via
+    #   ipython
+    #   traitlets
+ipython-genutils==0.2.0
+    # via traitlets
 ipython==7.7.0
-jedi==0.14.1              # via ipython
-kiwisolver==1.1.0         # via matplotlib
+    # via -r requirements.in
+jedi==0.14.1
+    # via ipython
+kiwisolver==1.1.0
+    # via matplotlib
 matplotlib==3.1.1
-numpy==1.17.0             # via matplotlib
-parso==0.5.1              # via jedi
-pexpect==4.7.0            # via ipython
-pickleshare==0.7.5        # via ipython
+    # via -r requirements.in
+numpy==1.17.0
+    # via matplotlib
+parso==0.5.1
+    # via jedi
+pexpect==4.7.0
+    # via ipython
+pickleshare==0.7.5
+    # via ipython
 pip-tools==4.0.0
-prompt-toolkit==2.0.9     # via ipython
-ptyprocess==0.6.0         # via pexpect
-pygments==2.4.2           # via ipython
-pyparsing==2.4.2          # via matplotlib
-python-dateutil==2.8.0    # via matplotlib
-six==1.12.0               # via cycler, pip-tools, prompt-toolkit, python-dateutil, traitlets
-traitlets==4.3.2          # via ipython
-wcwidth==0.1.7            # via prompt-toolkit
+    # via -r requirements.in
+prompt-toolkit==2.0.9
+    # via ipython
+ptyprocess==0.6.0
+    # via pexpect
+pygments==2.7.4
+    # via ipython
+pyparsing==2.4.2
+    # via matplotlib
+python-dateutil==2.8.0
+    # via matplotlib
+six==1.12.0
+    # via
+    #   cycler
+    #   pip-tools
+    #   prompt-toolkit
+    #   python-dateutil
+    #   traitlets
+traitlets==4.3.2
+    # via ipython
+wcwidth==0.1.7
+    # via prompt-toolkit
 
 # The following packages are considered to be unsafe in a requirements file:
-# setuptools==41.0.1        # via ipython, kiwisolver
+# setuptools
