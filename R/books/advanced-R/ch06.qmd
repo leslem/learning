@@ -1,0 +1,57 @@
+---
+title: "Chapter 6: Functions"
+author: Leslie Emery
+format: html
+---
+
+## 6.1 Function fundamentals
+## 6.3 Function composition
+## 6.4 Lexical scoping
+## 6.5 Lazy evaluation
+## 6.6 ... (dot-dot-dot)
+## 6.7 Exiting a function
+## 6.8 Function forms
+
+
+## Quiz
+
+1.  What are the three components of a function?
+
+1.  What does the following code return?
+
+    ```{r, eval = FALSE}
+    x <- 10
+    f1 <- function(x) {
+      function() {
+        x + 10
+      }
+    }
+    f1(1)()
+    ```
+    
+1.  How would you usually write this code?
+
+    ```{r, eval = FALSE}
+    `+`(1, `*`(2, 3))
+    ```
+    
+1.  How could you make this call easier to read?
+
+    ```{r, eval = FALSE}
+    mean(, TRUE, x = c(1:10, NA))
+    ```
+
+1.  Does the following code throw an error when executed? Why or why not?
+
+    ```{r, eval = FALSE}
+    f2 <- function(a, b) {
+      a * 10
+    }
+    f2(10, stop("This is an error!"))
+    ```
+
+1.  What is an infix function? How do you write it? What's a replacement 
+    function? How do you write it?
+
+1.  How do you ensure that cleanup action occurs regardless of how a function 
+    exits?
