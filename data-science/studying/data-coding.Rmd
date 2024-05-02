@@ -1,0 +1,362 @@
+---
+title: "Basic data coding skills in R"
+author: "Leslie Emery"
+date: "2020-09-19"
+output:
+    html_document:
+        highlight: zenburn
+        fig_width: 7
+        fig_height: 7
+        toc: true
+        toc_depth: 2
+        toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries}
+library(ggplot2)
+library(stringr)
+library(dplyr)
+library(tidyr)
+```
+
+```{r}
+data(Titanic)  # For classification
+data(longley)  # For regression
+data(iris)  # For clustering
+```
+
+```{r}
+Titanic <- data.frame(Titanic)
+str(Titanic)
+str(longley)
+str(iris)
+```
+
+
+
+## Sort
+
+### Base R
+```{r}
+iris[order(iris$Sepal.Length, decreasing=TRUE), ]
+
+iris[order(iris$Sepal.Length, iris$Species), ]
+```
+
+### Tidyverse
+```{r}
+iris %>% 
+    arrange(desc(Sepal.Length))
+
+iris %>% 
+    arrange(Sepal.Length, Species)
+```
+
+
+## Merge/join
+
+First we need some example data.
+```{r}
+n_users <- 100
+users <- data.frame(
+    id=seq(n_users),
+    name=sapply(1:n_users, FUN=function(x){
+        name_len <- runif(1, 1, 10)
+        return(paste0(sample(letters, name_len, replace=TRUE), collapse=''))
+    }),
+    tenure=rnorm(n_users, mean=5, sd=3.75),
+    stringsAsFactors=FALSE
+)
+
+n_trips <- 2000
+trips <- data.frame(
+    day_index=sample(1:365, n_trips, replace=TRUE),
+    total_distance=rexp(n_trips, 20),
+    traffic_severity=sample(1:5, n_trips, replace=TRUE),
+    user_id=sample(1:n_users, n_trips, replace=TRUE,
+                   prob=rbeta(n_users, 2, 5)),
+    stringsAsFactors=FALSE
+)
+```
+
+
+### Base R
+
+```{r}
+user_trips_base <- merge(users, trips, by.x='id', by.y='user_id', all.y=TRUE)
+```
+
+### Tidyverse
+```{r}
+user_trips_tidy <- left_join(trips, users, by=c('user_id' = 'id'))
+```
+
+
+## Group by/aggregate
+
+### Base R
+```{r}
+# Longest trip per user
+aggregate(total_distance ~ id, data=user_trips_base, FUN="max")
+
+# Median trip per day
+aggregate(total_distance ~ day_index, data=user_trips_base, FUN="quantile", probs=0.5)
+
+# Earliest trip per user
+aggregate(day_index ~ id, data=user_trips_base, FUN="min")
+
+# Distance of earliest trip per user
+tmp <- sapply(users$id, FUN=function(x){
+    user_df <- user_trips_base[user_trips_base$id == x, ]
+    return(user_df$total_distance[user_df$day_index == min(user_df$day_index)][1])
+})
+data.frame(id=users$id, earliest_distance=tmp)
+```
+
+### Tidyverse
+```{r}
+# Longest trip per user
+user_trips_tidy %>% 
+    group_by(user_id) %>% 
+    summarize(max(total_distance))
+
+# Median trip per day
+user_trips_tidy %>% 
+    group_by(user_id) %>% 
+    summarize(median(total_distance))
+
+# Earliest trip per user
+user_trips_tidy %>% 
+    group_by(user_id) %>% 
+    summarize(min(day_index))
+
+# Distance of earliest trip per user
+user_trips_tidy %>% 
+    group_by(user_id) %>% 
+    summarize(earliest_day = min(day_index),
+              earliest_distance = subset(total_distance, day_index == earliest_day)) %>% head()
+```
+
+
+## Add rows, add columns
+
+### Base R
+
+```{r}
+trips$platform <- sample(c('iOS', 'Android', 'Mac', 'Windows', 'Linux'),
+                         n_trips,
+                         replace=TRUE,
+                         prob=c(0.2, 0.4, 0.10, 0.28, 0.02))
+# Also cbind, rbind
+```
+
+### Tidyverse
+
+```{r}
+trips <- trips %>% 
+    mutate(continent = sample(c('N America', 'S America', 'Europe', 'Asia', 'Africa', 'Australia'),
+                              n_trips, replace=TRUE, 
+                              prob=c(2, 1, 2, 1, 1, 1))
+           )
+```
+
+
+## Remove/identify duplicates
+
+### Base R
+
+```{r}
+# Find duplicated user ids in trips
+which(duplicated(trips$user_id))
+
+trips[!duplicated(trips$user_id), ]
+```
+
+### Tidyverse
+```{r}
+trips %>% 
+    filter(!duplicated(user_id))
+```
+
+
+## Identify missing values
+
+```{r}
+# Choose some random locations to add NAs to in some example data
+trips_unclean <- trips
+# Some trip distances
+trips_unclean$total_distance[sample(1:n_trips, n_trips*0.03)] <- NA
+# Some trip day indexes
+trips_unclean$day_index[sample(1:n_trips, n_trips*0.02)] <- NA
+```
+
+### Base R
+```{r}
+subset(trips_unclean, is.na(day_index))
+subset(trips_unclean, is.na(total_distance))
+trips_unclean[apply(trips_unclean, MARGIN=1, FUN=function(x){any(is.na(x))}), ]
+```
+
+### Tidyverse
+```{r}
+trips_unclean %>% 
+    filter(is.na(day_index))
+
+trips_unclean %>% 
+    filter(is.na(day_index))
+
+trips_unclean %>% 
+    filter_all(any_vars(is.na(.)))
+```
+
+
+## Moving windows
+
+### Base R
+```{r}
+# The doc doesn't say it, but stats::filter does a moving average over a given "filter"
+base_window_avg <- stats::filter(
+    trips$total_distance[order(trips$day_index)],
+    filter=rep(1/10, 10), sides=2
+)
+
+# A more manual way
+window_index <- function(x, side_size){
+    start <- max(c(1, x - side_size))
+    end <- min(c(n_trips, x + side_size))
+    return(seq(start, end, 1))
+}
+
+window_index(1, 5)
+window_index(n_trips, 5)
+window_index(100, 5)
+
+windows <- lapply(1:n_trips, FUN=window_index, side_size=5)
+head(windows)
+
+window_avg_dist <- sapply(windows, FUN=function(x){mean(trips$total_distance[x], na.rm=TRUE)})
+
+plot(trips$day_index, trips$total_distance, pch=20, col='blue')
+points(trips$day_index, base_window_avg, col='red')
+points(trips$day_index, window_avg_dist, col='green')
+```
+
+### Tidyverse
+
+There's not a built in moving average function here. Look instead to the `zoo` package.
+
+
+## Linear regression
+
+### Base R
+```{r}
+fit_lm <- lm(Employed ~ GNP + Unemployed + Armed.Forces + Population + Year, data=longley)
+summary(fit_lm)
+names(fit_lm)
+par(mfrow=c(2, 2))  # Change the panel layout to 2 x 2
+plot(fit_lm)
+par(mfrow=c(1, 1))  # Change back to 1 x 1
+
+single_lm <- lm(Employed ~ Population, data=longley)
+summary(single_lm)
+par(mfrow=c(2, 2))  # Change the panel layout to 2 x 2
+plot(single_lm)
+par(mfrow=c(1, 1))  # Change back to 1 x 1
+
+plot(longley$Population, longley$Employed, pch=20)
+abline(single_lm, col='blue')
+points(longley$Population, single_lm$fitted.values, col='red')
+```
+
+```{r}
+fit_iris <- lm(Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width, data=iris)
+summary(fit_iris)
+```
+
+
+## Logistic regression
+
+### Base R
+```{r}
+iris_glm <- glm(Species ~ Petal.Length, family=binomial('logit'), data=iris)
+# Error: did not converge
+
+iris_glm <- glm(Species ~ Sepal.Length, family=binomial('logit'), data=iris)
+summary(iris_glm)
+names(iris_glm)
+par(mfrow=c(2, 2))  # Change the panel layout to 2 x 2
+plot(iris_glm)
+par(mfrow=c(1, 1))  # Change back to 1 x 1
+```
+
+
+## K-means clustering
+
+### Base R
+```{r}
+iris_clusters <- kmeans(iris[-5], centers=3)
+str(iris_clusters)
+iris_clusters$centers
+
+var_pairs <- t(combn(1:3, 2))
+
+par(mfrow=c(1, nrow(var_pairs)))
+for (r in 1:nrow(var_pairs))
+{
+    plot(iris[[var_pairs[r, 1]]],
+         iris[[var_pairs[r, 2]]],
+         pch=c(15, 18, 20)[iris$Species],  # pch by Species label,
+         col=c('red', 'blue', 'green')[iris_clusters$cluster]  # col by cluster
+         )
+}
+par(mfrow=c(1, 1))
+
+# Get majority Species per cluster
+# lapply(1:3, FUN=function(x){
+#         labels <- iris$Species[iris_clusters$cluster == x]
+#         max_count <- 
+#     }
+# )
+```
+
+
+## Cross-validation
+
+Not going into this here, but can use the `trainControl` function from the `caret` package. 
+
+
+## Scatterplot
+
+I've done this above, so don't need to practice here.
+
+## Barplot
+
+### Base R
+
+### Tidyverse
+
+
+## Read in /write out data
+
+### Base R
+
+### Tidyverse
+
+
+## Identify missing data
+
+### Base R
+
+### Tidyverse
+
+
+## String manipulations
+
+### Base R
+
+### Tidyverse
+
