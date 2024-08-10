@@ -2,42 +2,59 @@
 title: "Chapter 6: Functions"
 author: Leslie Emery
 date: "2024-05-03"
-format: html
+format:
+  html:
+    toc: true
 ---
+
+## Meeting intro
+
+**Proposed Format**
+
+1. Discuss the chapter (~15 minutes)
+2. Go over the exercises and solutions (~15 minutes)
+3. Deep dive in a use case or tricky solution (~10 minutes)
+4. Open discussion/applications as BMS (~20 minutes)
+
+**Call for Volunteers**
+
+Need volunteers to sign up to lead chapter meetings. See [schedule on Confluence](https://biodoc.pri.bms.com:8443/display/RB/Advanced+R) for available slots.
+
 
 ## 6.1 Function fundamentals
 
 **Functions are objects!** just like vectors
 
 * Parts of a function:
-1. Arguments (`formals()`) *explicit*
-2. Code (`body()`) *explicit*
-3. Environment (`environment()`) *implicit*
-   * Depends on where you defined the function
+  1. Arguments (`formals()`) *explicit*
+  2. Code (`body()`) *explicit*
+  3. Environment (`environment()`) *implicit*
+     * Depends on where you defined the function
 * Functions can have `attributes`, just like any R object
-* `srcref` is used by base R to point to the source code
-  * Will contain comments and formatting, unlike `body()`
+  * `srcref` is used by base R to point to the source code
+    * Will contain comments and formatting, unlike `body()`
 * **Primitive functions** call C code directly
-* `typeof()` will be "builtin" or "special"
-* Formals, body, and environment will all be `NULL`
-* Only found in base
+  * `typeof()` will be "builtin" or "special"
+  * Formals, body, and environment will all be `NULL`
+  * Only found in base
 * R uses **[first-class functions](https://en.wikipedia.org/wiki/First-class_function)**
-* Can pass functions as arguments to other functions
-  * Harmonization helper function example
-* Functions can return other functions
-* Functions can be assigned to variables and stored in data structures
-  * `daapr` join function example
+  * Can pass functions as arguments to other functions
+    * Harmonization helper function example
+  * Functions can return other functions
+  * Functions can be assigned to variables and stored in data structures
+    * `daapr` join function example
 * An **anonymous function** is not assigned to a name
 * Functions are also called **closures** in R
-* `object of type 'closure' is not subsettable` error
-  * Jenny Bryan's excellent 2020 RStudio::conf() talk
-  * trying to call `df$x` when you haven't defined a dataframe named x yet (`df` is the density function)
-  * trying to use a reactive as an object instead of a function call in a Shiny app (e.g. `mydata$x` instead of `mydata()$x`
+  * `object of type 'closure' is not subsettable` error
+    * Jenny Bryan's excellent 2020 RStudio::conf() talk
+    * trying to call `df$x` when you haven't defined a dataframe named x yet (`df` is the density function)
+    * trying to use a reactive as an object instead of a function call in a Shiny app (e.g. `mydata$x` instead of `mydata()$x`
 * To call a function when you already have the arguments in a list, use `do.call`: `myargs <- list(1:10, na.rm=T); do.call(mean, myargs)`
 
 ## 6.3 Function composition
 
 Ways to call multiple functions in a chain:
+
 1. Nesting
 2. Intermediate objects
 3. Piping
@@ -49,14 +66,14 @@ Ways to call multiple functions in a chain:
 
 * **Scoping** is the process of finding the value associated with a name
 * **Lexical scoping** looks up value of a name based on how the function is defined, not how it's called (defined at "parse time")
-* Compared to **dynamic scoping** (defined at "run time")
-  * Mostly older languages, most notable are `bash`, `LaTeX`
+  * Compared to **dynamic scoping** (defined at "run time")
+    * Mostly older languages, most notable are `bash`, `LaTeX`
 * Scoping rules in R:
-* Name masking: names inside a function mask those outside ("local scope" in Python)
-* Functions vs. variables: in a function call, R prefers names of non-functions as arguments
-* Fresh start: a new environment is created for every function call, an each is independent
-* Dynamic lookup: look for values when the function is run, not when it is created
-  * If you R function uses a non-local object, then that object may change in the meantime
+  * Name masking: names inside a function mask those outside ("local scope" in Python)
+  * Functions vs. variables: in a function call, R prefers names of non-functions as arguments
+  * Fresh start: a new environment is created for every function call, an each is independent
+  * Dynamic lookup: look for values when the function is run, not when it is created
+    * If your R function uses a non-local object, then that object may change in the meantime
 
 
 ## 6.5 Lazy evaluation
@@ -64,9 +81,9 @@ Ways to call multiple functions in a chain:
 * A lot of things that make me think, *"Oh, that's weird"*
 * Function arguments aren't evaluated until they are used
 * This is enabled by the **promise**
-1. Expression that does the delayed computation
-2. Environment where the expression is evaluated (where function is called)
-3. Value computed & cached at time of expression evaluation
+  1. Expression that does the delayed computation
+  2. Environment where the expression is evaluated (where function is called)
+  3. Value computed & cached at time of expression evaluation
 * Default arguments can be defined in terms of other arguments, or even variables defined later in the function
 * `missing()` to determine if a function arg is default or user-provided (interesting)
 * Is Hadley going to give us another inscrutable operator??? `%||%`
@@ -75,7 +92,7 @@ Ways to call multiple functions in a chain:
 ## 6.6 ... (dot-dot-dot)
 
 * `...` is a special function argument for variable number of arguments (**varargs**)
-* similar to `*args` and `*kwargs` in python 
+  * similar to `*args` and `*kwargs` in python 
 * Use it to pass on args to another function
 * More *this is weird* stuff:
   * `..N` for elements within `...`
@@ -90,7 +107,7 @@ Ways to call multiple functions in a chain:
 * Implicit return: last evaluated expression **My biggest R pet peeve!**
 * Explicit return: `return(myvector)`
 * Invisible return: `invisible(myvector)`
-* For functions that are called for a side effect
+  * For functions that are called for a side effect
 * Error: `stop("my error message")` stops execution of the function
 * `on.exit(add=TRUE)` for an **exit handler**
     * like a teardown procedure from tests
@@ -102,20 +119,19 @@ Ways to call multiple functions in a chain:
 ## 6.8 Function forms
 
 * Four forms of function calls:
-1. Prefix: function name, then arguments
-2. Infix: function between arguments (operators)
-3. Replacement: replace values by assignment
-4. Special: other weird things like `[[`, `if`, and `for`; these are all primitives
+  1. Prefix: function name, then arguments
+  2. Infix: function between arguments (operators)
+  3. Replacement: replace values by assignment
+  4. Special: other weird things like `[[`, `if`, and `for`; these are all primitives
 * But *all function calls can be written in prefix form!*
 ```
 `+`(3, 5) # This actually works!
 ```
 * Knowing the function name, you can overload built-in functions
 * Function arguments can be partially matched (this sounds dangerous)
+  * `options(warnPartialMatchArgs = TRUE)` to give warnings
 * *"arguments are matched by exact name, then with unique prefixes, and finally by position"*
-* `options(warnPartialMatchArgs = TRUE)`
 * You can create your own infix functions by starting/ending with `%`
-
 
 
 ## Quiz
