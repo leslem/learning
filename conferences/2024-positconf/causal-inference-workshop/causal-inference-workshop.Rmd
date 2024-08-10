@@ -1,0 +1,71 @@
+---
+title: "2024 posit::conf Causal Inference Workshop"
+author: "Leslie Emery"
+date: "`r format(Sys.time(), '%Y-%m-%d %I:%M %Z')`"
+# runtime: shiny
+output:
+  html_document:
+    code_folding: show
+    highlight: pygment
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: true
+    theme:
+      primary: "#BE2BBB"
+      secondary: "#EEE7E7"
+      success: "#1dce9b"
+      info: "#009fba"
+      warning: "#ffac25"
+      danger: "#df603a"
+      base_font: !expr bmsdash:::font_bms_rmd("bms")
+---
+
+# Setup
+
+```{r setup, include=FALSE}
+library(bmsdash)
+knitr::opts_chunk$set(echo = TRUE,
+                      results = "markup",
+                      message=FALSE,
+                      warning=FALSE,
+                      cache=FALSE)
+
+# Specify the path for knitting this document
+knitr::opts_knit$set(echo = TRUE, root.dir = normalizePath(here::here()))
+
+if (requireNamespace("thematic")) 
+  thematic::thematic_rmd(font = "auto")
+```
+
+```{r libraries, message=FALSE, warning=FALSE}
+library(dplyr)
+library(DT)
+library(ggplot2)
+library(glue)
+library(stringr)
+library(tidyr)
+```
+
+```{r plot-table-settings}
+# Set default GGplot theme
+old_theme <- theme_set(theme_bms(axis_title_just="m", base_size=18, axis_title_size="20"))
+angled_xlabs <- theme(axis.text.x=element_text(angle=70, hjust=1))
+
+## Set variables for tracking table and figure numbers.
+tabN <- 0
+figN <- 0
+
+# Bootstrap class for table captions
+tbcap_cls <- "bg-info"
+
+# DT table options
+dt_dom <- glue::glue(
+  "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+  "<'row'<'col-sm-6'l><'col-sm-6'f>>",
+  "<'row'<'col-sm-12'tr>>"
+)
+options(DT.options = list(pageLength = 10, dom=dt_dom))
+```
+
+# 
