@@ -1,4 +1,5 @@
-source("~/devel/set_proxy.R")
+source("~/devel/dotfiles/set_proxy.R")
+source("~/devel/dotfiles/unset_proxy.R")
 
 renv::settings$snapshot.type("all")
 renv::init(bare=TRUE)
@@ -22,3 +23,7 @@ renv::install(c(
 renv::snapshot(type="all", prompt=FALSE)
 
 renv::restore(prompt=FALSE)
+
+install.packages("pak")
+pak::pak("r-causal/causalworkshop")
+causalworkshop::install_workshop("~/devel/learning/conferences/2024-positconf/causal-inference-workshop")

@@ -1,0 +1,88 @@
+---
+title: "Outcome Model"
+format: html
+---
+
+
+```{r}
+#| label: setup
+library(tidyverse)
+library(broom)
+library(touringplans)
+library(rsample)
+library(propensity)
+
+seven_dwarfs <- seven_dwarfs_train_2018 |>
+  filter(wait_hour == 9)
+```
+
+We are interested in examining the relationship between whether there were "Extra Magic Hours" in the morning (the **exposure**) and the average wait time for the Seven Dwarfs Mine Train the same day between 9am and 10am (the **outcome**).
+
+## Your turn
+
+Create a function called `ipw_fit` that fits the propensity score model from Exercise 03, incorporates the ATE weights calculated in Exercise 04, and fits a weighted outcome model.
+
+```{r}
+fit_ipw <- function(split, ...) { 
+  .df <- analysis(split)
+  
+  # fit propensity score model
+  propensity_model <- glm(
+    park_extra_magic_morning ~ park_temperature_high + park_close + park_ticket_season,
+    data = .df,
+    family = binomial()
+  )
+  
+  # calculate ATE weights
+  .df <- propensity_model |> 
+    augment(type.predict="response", data=.df) |> 
+    mutate(wts = wt_ate(.fitted, park_extra_magic_morning, exposure_type="binary"))
+
+  # fit correctly bootstrapped ipw model 
+  lm(wait_minutes_posted_avg ~ park_extra_magic_morning, data = .df, weights = wts) |>
+    tidy() 
+}
+```
+
+Bootstrap this result 1000 times.
+
+```{r}
+set.seed(1234)
+
+ipw_results <- bootstraps(seven_dwarfs, 1000, apparent = TRUE) |>
+  mutate(boot_fits = map(splits, fit_ipw)) 
+
+glimpse(ipw_results)
+ipw_results$splits[1]
+str(ipw_results$splits[1])
+```
+
+Check out the distribution of estimates (**no need to change this code**)
+
+```{r}
+ipw_results |>
+  mutate(
+    estimate = map_dbl(
+      boot_fits,
+      # pull the `estimate` for `park_extra_magic_morning` for each fit
+      \(.fit) .fit |>
+        filter(term == "park_extra_magic_morning") |>
+        pull(estimate)
+    )
+  ) |>
+  ggplot(aes(estimate)) +
+  geom_histogram(fill = "#D55E00FF", color = "white", alpha = 0.8) + 
+  theme_minimal()
+```
+
+Calculate the confidence interval
+
+```{r}
+boot_estimate <- int_t(ipw_results, boot_fits) |>
+  filter(term == "park_extra_magic_morning")
+
+boot_estimate
+```
+
+
+Stretch goal: Do the same for a model using matching.
