@@ -1,0 +1,18 @@
+---
+title: "Chapter 6: Functions"
+author: Leslie Emery
+date: "2024-05-03"
+format:
+  html:
+    toc: true
+---
+
+## Meeting intro
+
+**Proposed Format**
+
+1. Discuss the chapter (~15 minutes)
+2. Go over the exercises and solutions (~15 minutes)
+3. Deep dive in a use case or tricky solution (~10 minutes)
+4. Open discussion/applications as BMS (~20 minutes)
+
