@@ -24,7 +24,7 @@ https://r-pkgs.org/
     - default is `cran=FALSE`, which means the test won't run on CRAN's servers; but this is due to the assumption that other non-snapshot tests are doing the checks for correctness
     - `variant` arg lets you specify different snapshots for different conditions (e.g. OS, dependency version, etc.)    
 
-## Designing by your test suite
+## 14 Designing by your test suite
 
 ### What to test
 - Test the external interface, not the internal implementation
@@ -76,7 +76,7 @@ https://r-pkgs.org/
     - If you need a specific file name, use `withr::local_tempdir()` first as part of the path containing the specific file
 
 
-## Advanced testing techniques
+## 15 Advanced testing techniques
 
 ### Test fixtures
 - For when it's not practical to make your test entirely self-sufficient and -contained

@@ -1,0 +1,236 @@
+---
+title: "Best Practices for Code Testing"
+subtitle: Why testing is on my mind lately, and how I've learned about testing best practices
+author: Leslie Emery
+date: "2025-07-21"
+format: 
+    revealjs:
+        theme: dracula
+---
+
+<!-- systemfonts::system_fonts() to find the available fonts -->
+
+
+## Motivation: `daapr` {.smaller}
+
+:::: {.columns}
+
+::: {.column width="35%"}
+- `daapr` is a suite of 4 related R packages for building reproducible, version controlled, collaborative data products
+- Creator: Afshin Mashadi-Hossein (now at Umoja)
+- Developers: Burak, Clara, Mandeep, Leslie
+:::
+
+::: {.column width="65%"}
+- External dependencies
+    - Pushing to GitHub repos
+    - Writing pinned data to s3/JEDI Labkey/local storage
+    - Reading pinned data from s3/JEDI Labkey/local storage
+- `daapr` is a shell package that loads the real packages `dpi`, `dpbuild`, and `dpdeploy`
+- Assumes that you're working within a daapr project
+    - Config files
+    - Versioned inputs and outputs deployed
+    - `.Rproj` file active
+    - Some assumptions you're working interactively in RStudio
+:::
+
+::::
+
+::: {.notes}
+Thinking about the best way to set up tests for this complicated project with a lot of history has me thinking back on my personal journey with testing my code and everything I've learned about tests so far.
+Using this as an excuse to fill a meeting topic.
+- `dpi` reads deployed daaps
+- `dpbuild` creates a daapr project and output files
+- `dpdeploy` writes daap inputs and outputs to remote pin board
+:::
+
+
+## How most code "testing" in science starts
+
+- A file full of code snippets that you run to make sure code is working as you write it
+- If you're a little more formal, you can set up a file with many `assert` statements
+- This is NOT a best practice, but at least it's something
+- I'm still using this approach sometimes, because Shiny app testing is hard 🙈
+    - [MRD Hypercare code example](https://biogit.pri.bms.com/Translational-Data-Science/MRDhypercare/blob/08be088487f6ec827659bf15ece08c0da69b37d7/dev/02_dev.R#L119)
+
+## Flashback: "testing" code from my dissertation {.smaller}
+
+- Running simulations of human population genetics
+    - Output: 1,000 replicates, each with 300 individuals, 1 Mb sequence
+    - Code to aggregate summary statistics over these replicates
+- I saved a set of small test data (20 replicates, fewer individuals, much shorter sequence length) and every time I made a code change, I ran the whole pipeline on this test data
+
+```
+# Run a function/method and print some useful output if it fails
+# Don't use this code!!! It's not a good example
+def tester(command):
+	try:
+		exec command in globals()
+		print "\t", "-" * 20
+		print "\tCommand Successful:", command
+	except:
+		print "\tCOMMAND FAILED:", command
+		info = sys.exc_info()
+		for file, lineno, function, text in traceback.extract_tb(info[2]):
+			print "\t", file, "line", lineno, "in", function
+			print "\t=>", repr(text)
+		print "\t** %s: %s" % info[:2]
+```
+
+::: {.notes}
+This can maybe, charitably, be called an end to end test?
+:::
+
+## Testing for a small scale production Django app
+
+[Phenotype Inventory Explorer](https://github.com/UW-GAC/pie)
+
+![Tag phenotype variables with controlled vocabulary terms](pie-screenshots/tag-form.png)
+
+## Testing for a small scale production Django app
+
+[Phenotype Inventory Explorer](https://github.com/UW-GAC/pie)
+
+![Tag phenotype variables with controlled vocabulary terms](pie-screenshots/tagged-trait-detail.png)
+
+## Testing for a small scale production Django app
+
+[Phenotype Inventory Explorer](https://github.com/UW-GAC/pie)
+
+![Tag phenotype variables with controlled vocabulary terms](pie-screenshots/tags-summary.png)
+
+
+## Leveling up: using a Python unit testing framework
+
+- Unit tests with test database
+- Code coverage
+- End to end tests
+- Interactive tests with `selenium`
+
+
+## Django best practices from *Two Scoops of Django* {.smaller .scrollable}
+
+![Caption](https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1430285645i/25447991._UY630_SR1200,630_.jpg)
+
+- One test file per module to be tested, e.g. `test_my_module.py`
+- Each test method tests one thing
+- Use "factories" to produce fake objects for testing
+- Don't write tests that have to be tested (they should be simple)
+- DRY (don't repeat yourself) doesn't apply to writing tests
+- Don't rely on **fixtures** (static test data sets that can be hard to maintain)
+- Test everything that isn't already covered by core Django tests
+- Document the purpose of each test
+- Integration tests are great, but do them after the unit tests are done
+
+
+## Test Driven Development with Python {.smaller .scrollable}
+
+![Caption](https://covers.oreillystatic.com/images/0636920051091/lrg.jpg)
+
+- Write unit tests **before** you write the class/method/function
+- Test behavior, not functional details
+- Types of tests
+    - Functional test (also "acceptance test" or "end-to-end" test): does the path a user will follow work as expected?
+    - Unit test: does the unit of code work as expected?
+    - Integration test: check that your code integrates with external systems (e.g. API, filesystem, database, etc.)
+
+## *R Packages*
+
+![Caption](https://r-pkgs.org/images/cover-2e-small.png)
+
+## Chapter 13: Testing basics {.smaller .scrollable}
+
+- The `testthat` testing workflow
+   - Create a test with `usethis::use_test("suffix-for-test-file")`
+    - Write `test_that("name", {code})` calls in the test file
+        - Each test may have multiple expectations, but one test should cover a single unit of functionality
+    - Run tests
+        - Develop test code interactively with `devtools::load_all(); test_that("test-name", {code to test})` interactively
+        - Run one test file with `testthat::test_file("tests/tesththat/test-suffix.R")` or `devtools::test_active_file()`
+        - Run all tests with `devtools::test()`
+        - Finally, run `devtools::check()`
+- There are also snapshot tests (basically a way to set up test fixtures easily and repeatably)
+
+
+## Chapter 14: Designing your test suite
+
+## What to test {.smaller .scrollable}
+- Test the external interface, not the internal implementation
+- Test each thing once and only once
+- Avoid testing simple, obviously correct code
+- Always write a test when you discover a bug
+- You can use `devtools::test_coverage_active_file()` and `devtools::test_coverage()` to generate coverage data
+
+## High-level principles for testing {.smaller .scrollable}
+- Self-sufficiency
+    - Your `tests/testthat/test-*.R` files should mostly contain calls to `test_that()` and minimal other top-level code
+    - This may mean repeating code in multiple `test_that()` calls
+- Self-containment
+    - Watch out for things that affect the filesystem, the search path, or global options like `options()`, `par()`, and env vars
+    - If you **have to** make such changes in the course of a test, you need to do clean up after
+    - Try using `withr::local_*()` or `withr::with_*()` functions, or just use `withr::defer()` (the nicer equivalent of `on.exit()`)
+    - If you use `withr` in tests, put it in `Suggests`
+    - In `testthat` 3e, `testthat::local_reproducible_output()` is used implicitly in every `test_that()` call, which "suppresses colored output, turns off fancy quotes, sets the console width, and sets LC_COLLATE = "C""
+- Plan on test failure
+    - The `devtools` setup lets you run one test at a time to fix things; this is one of the best ways to debug a test interactively
+    - This is one of the big reasons for self-sufficient/self-contained test code
+- Repetition is OK
+    - It's more important to have obvious/understandable test code than DRY
+    - See this blog post: https://mtlynch.io/good-developers-bad-tests/
+    - If you really need to make something that's big and cumbersome to repeat, use a test fixture
+- Remove tension between interactive and automated testing
+    - Don't set up anything for interactive convenience that will compromise the health of automated tests
+    - You WILL NOT NEED any `library()` calls in the test files!!!
+    - Don't use `source()` in tests! (probably)
+- Many tidyverse packages might violate these principles because `testthat` is evolving and it's been a long time
+
+## Files relevant to testing {.smaller .scrollable}
+- Test helpers (e.g. factories) can be defined in `R/some_file.R` and used in tests
+- Don't edit anything in `tests/testthat.R`; it's run in R CMD check, but not used in most other testing or interactively
+- `tests/testthat/helper*.R>` gets executed by `devtools::load_all()`
+    - It's your choice whether you put test helper functions here or in the R dir
+    - This is a "good location for setup code that is needed for its side effects"
+    - In an API wrapper, this is also a good place for authenticating with test creds
+- Setup files in `tests/testthat/setup*.R`
+    - Treated like a helper, EXCEPT not executed by `devtools::load_all()`
+    - Often contain corresponding tear down code
+- Any other files in the `tests/testthat` dir won't be automatically executed
+- Storing test data
+    - Suggestion here is to haver `tests/testthat/fixtures` and store the code to create the data and the data itself in this dir
+    - In your tests, access these files with `readRDS(testthat::test_path("fixtures", "data-object.rds"))`
+- Only ever write files to the session temp dir during tests! (and still make sure to clean up after)
+    - `withr::local_tempfile()` is the best way to do this
+        - The temp file's lifetime is tied to the "local" environment
+    - If you need a specific file name, use `withr::local_tempdir()` first as part of the path containing the specific file
+
+
+## Chapter 15: Advanced testing techniques {.smaller .scrollable}
+
+- Test fixtures
+    1. Create `useful_thing`s with a helper function
+    2. Create (and destroy) a "local" `useful_thing`
+    3. Store a concrete `useful_thing` persistently
+- Custom testing tools
+    - A helper defined inside of a tests
+    - Custom expectations
+- You can skip tests conditionally
+- Secrets
+    - Main advice is to try to design the package so that most of it can be tested without the creds
+    - Then test the authentication parts in an env that provides secure env vars (e.g. GitHub Actions)
+
+## To mock or not? {.smaller .scrollable}
+
+- Mocking: replace a function with a version of it that returns a pre-defined result, just within the test
+- Some programmers use a "mock everything all the time" style
+- All three references I've learned from recommend mocking only for external dependencies like APIs, emails, webhooks, etc.
+- "Tests using mocks end up tightly coupled to the implementation"
+
+## Takeaways for `daapr`
+
+
+
+## Takeaways for your own code (and my other projects)
+
+
+
+
