@@ -68,7 +68,7 @@ https://r-pkgs.org/
     - Often contain corresponding tear down code
 - Any other files in the `tests/testthat` dir won't be automatically executed
 - Storing test data
-    - Suggestion here is to haver `tests/testthat/fixtures` and store the code to create the data and the data itself in this dir
+    - Suggestion here is to have `tests/testthat/fixtures` and store the code to create the data and the data itself in this dir
     - In your tests, access these files with `readRDS(testthat::test_path("fixtures", "data-object.rds"))`
 - Only ever write files to the session temp dir during tests! (and still make sure to clean up after)
     - `withr::local_tempfile()` is the best way to do this
@@ -124,6 +124,7 @@ expect_proj_file <- function(...) {
     - Usually an external service or a function that reports about session state
     - "Our main advice about mocking is to avoid it if you can"
     - Mostly if the API requires authentication that's hard to do in tests, or if it often has downtime that will break your tests
+    - Don't use `mockery` if you can avoid it; instead, use `testthat::local_mocked_bindings()` or `testthat::with_mocked_bindings()`
 3. Dealing with secrets
     - Main advice is to try to design the package so that most of it can be tested without the creds
     - Then test the authentication parts in an env that provides secure env vars (e.g. GitHub Actions)

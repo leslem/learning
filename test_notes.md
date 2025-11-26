@@ -36,3 +36,8 @@
     - classical TDD: use real objects if possible and a double if the real thing is awkward
     - mockist TDD: always use a mock for any object with interesting behavior
     - "Although the various mock frameworks were designed with mockist testing in mind, many classicists find them useful for creating doubles"
+
+### `testthat` mocking article
+
+https://testthat.r-lib.org/articles/mocking.html
+
