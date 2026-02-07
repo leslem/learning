@@ -16,7 +16,9 @@ ui <- function(req){
 		id = "main-menu",
 		tabPanel(
 			"Data",
-			shiny::h1("Penguins data")
+			shiny::h1("Penguins data"),
+      reactable::reactableOutput("penguins_table")
+      # penguin_tableUI("pt1")
 		),
 		tabPanel(
 			"Plots",

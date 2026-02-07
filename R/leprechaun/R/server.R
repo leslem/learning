@@ -11,5 +11,9 @@
 server <- function(input, output, session){
 	send_message <- make_send_message(session)
 
-  penguins <- palmerpenguins::penguins
+  penguins <- reactive(palmerpenguins::penguins)
+  
+  # Modules ----
+  # penguin_table_server('pt1', penguins)
+  output$penguins_table <- reactable::renderReactable(reactable::reactable(penguins()))
 }

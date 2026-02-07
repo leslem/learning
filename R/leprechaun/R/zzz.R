@@ -5,7 +5,7 @@
 .onLoad <- function(...){
 	shiny::addResourcePath(
 		"img",
-		system.file("img", package = "leprechaun")
+		system.file("img", package = "penguiChaun")
 	)
 }
 
