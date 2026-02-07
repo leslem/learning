@@ -11,7 +11,7 @@
 server <- function(input, output, session){
 	send_message <- make_send_message(session)
 
-  penguins <- reactive(palmerpenguins::penguins)
+  penguins <- palmerpenguins::penguins
   
   # Modules ----
   penguin_table_server('pt1', penguins)

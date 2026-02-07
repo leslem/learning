@@ -29,7 +29,7 @@ penguin_table_server <- function(id, penguins){
 				ns <- session$ns
 				send_message <- make_send_message(session)
 
-				output$penguins_reactable <- reactable::renderReactable(reactable::reactable(penguins()))
+				output$penguins_reactable <- reactable::renderReactable(reactable::reactable(penguins))
 		}
 	)
 }
