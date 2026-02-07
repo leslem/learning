@@ -17,8 +17,7 @@ ui <- function(req){
 		tabPanel(
 			"Data",
 			shiny::h1("Penguins data"),
-      reactable::reactableOutput("penguins_table")
-      # penguin_tableUI("pt1")
+      bslib::card(penguin_tableUI("pt1"))
 		),
 		tabPanel(
 			"Plots",

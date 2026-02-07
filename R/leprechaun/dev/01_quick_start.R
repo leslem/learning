@@ -15,9 +15,15 @@ run()
 
 # Add some stuff to the app
 renv::install("palmerpenguins", prompt=F)
+# Add the data to the server
 usethis::use_package("palmerpenguins")
 renv::snapshot(type="all", prompt=FALSE)
 
-
+# I ran into trouble here because I hadn't renamed my package, so it got loaded as "leprechaun"
+# I updated the DESCRIPTION file and then reloaded my R session
+# I later ran into a problem because I hadn't updated the package name in the zzz.R file
 # Create a module
-leprechaun::add_module()
+leprechaun::add_module(name="penguin_table")
+renv::install("reactable", prompt=F)
+renv::snapshot(type="all", prompt=FALSE)
+
