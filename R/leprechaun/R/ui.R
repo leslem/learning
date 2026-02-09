@@ -21,7 +21,8 @@ ui <- function(req){
 		),
 		tabPanel(
 			"Plots",
-			shiny::h1("Penguins plots")
+			shiny::h1("Penguins plots"),
+      bslib::card(penguin_plotUI("plot1"))
 		)
 	)
 }

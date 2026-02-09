@@ -15,4 +15,5 @@ server <- function(input, output, session){
   
   # Modules ----
   penguin_table_server('pt1', penguins)
+  penguin_plot_server('plot1', penguins)
 }

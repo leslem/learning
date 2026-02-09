@@ -10,6 +10,11 @@
 
 ## General impressions
 - I like the default deps (shiny, bslib, htmltools, pkgload)
+- Potential gotcha: the template files created have tabs and not spaces
 
-
-
+## Discussion from book club
+- `leprechaun` is good for lightweight shiny-app-as-a-package without extra dependencies, but is not ready for production apps
+- `rhino` is good if you're forced to use R but want to pretend that it's python
+    - `tapyr` is their equivalent for Shiny for Python
+- `golem` is good if you're okay with an opnionated framework, and it **is** production ready
+- we should check out `periscope` as well
